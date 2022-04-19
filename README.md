@@ -2,7 +2,7 @@
 v0.0.1
 #**get started:**
 
-  pip install -r req.txt __
-  (create .env; add TOKEN_BOT) __
-  python bot_aio.py __
+  pip install -r req.txt <br />
+  (create .env; add TOKEN_BOT) <br />
+  python bot_aio.py <br />
   
