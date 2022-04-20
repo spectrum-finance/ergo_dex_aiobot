@@ -3,3 +3,4 @@ venv
 bot.py
 taska.py
 bot.py
+aiodata/data.sqlite

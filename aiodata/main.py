@@ -304,7 +304,7 @@ def get_database_connection(user_id):
     return aiosqlite.connect(database_path(user_id))
 
 if __name__ == "__main__":
-    #asyncio.run(init_database(db_name))
+    asyncio.run(init_database(db_name))
     #asyncio.run(add_user(db_name, tg_id=670354986, is_admin = 1))
     #print(asyncio.run(get_soc_info_by_name(name="Twitter")))
     #asyncio.run(add_first_backup_soc_by_name_soc("Twitter"))
@@ -323,6 +323,6 @@ if __name__ == "__main__":
     #asyncio.run(add_soc(db_name,"VK"))
     #asyncio.run(delete_soc_by_name(db_name, "VK"))
     #print(asyncio.run(get_user(253476738)))
-    asyncio.run(count_mess_user(253476728))
-    print(asyncio.run(get_most_active_user()))
+    #asyncio.run(count_mess_user(253476728))
+    #print(asyncio.run(get_most_active_user()))
     pass
