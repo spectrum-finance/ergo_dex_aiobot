@@ -4,5 +4,6 @@ v0.0.1
 
   pip install -r req.txt <br />
   (create .env; add TOKEN_BOT) <br />
+  python aiodata/main.py <br />
   python bot_aio.py <br />
   
