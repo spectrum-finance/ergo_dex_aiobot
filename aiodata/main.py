@@ -26,14 +26,16 @@ async def is_admin(tg_id, db_name=db_name):
                 return 0
             return res[0]
 
-async def add_user(db_name, tg_id, is_admin = 0):
+async def add_user(db_name, tg_id, name, username, is_admin = 0):
     if database_exists(db_name):
         #print(1)
         async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''INSERT INTO users(tg_id, is_admin) VALUES
-                ( {tg_id}, {is_admin} )
+            await db.execute(f'''INSERT INTO users(tg_id, is_admin, name, username) VALUES
+                ( {tg_id}, {is_admin}, "{name}", "{username}" )
             ''')
             await db.commit()
+
+
 
 
 async def get_all_users(db_name=db_name):
@@ -88,8 +90,17 @@ async def add_first_backup_soc_by_name_soc(name_soc, db_name=db_name):
         #print((datetime.now().strftime('%Y-%m-%d %H:%M:%S')[:-3]))
         async with aiosqlite.connect(database_path(db_name)) as db:
             await db.execute(f'''INSERT INTO backup_soc(id_social, time_edit) VALUES
-                ( {await get_soc_id_by_name(name_soc)}, CURRENT_TIMESTAMP )
+                ( {await get_soc_id_by_name(name_soc)}, CURRENT_TIMESTAMP -  1 )
             ''')
+            
+            await db.commit()
+
+async def delete_all_backup_soc( db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        #print((datetime.now().strftime('%Y-%m-%d %H:%M:%S')[:-3]))
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''DELETE FROM backup_soc ''')
             
             await db.commit()
 
@@ -231,17 +242,27 @@ async def get_most_active_user( db_name=db_name):
             res = await res.fetchone()
             return res
 
-async def count_mess_user(tg_id, db_name=db_name):
+async def count_mess_user(tg_id, name, username, db_name=db_name):
     user = await get_user(tg_id)
     if user is None:
         async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''INSERT INTO users(tg_id, is_admin, chat_count_mess) VALUES
-                ( {tg_id}, 0, 1 )
+            await db.execute(f'''INSERT INTO users(tg_id, is_admin, name, username, chat_count_mess) VALUES
+                ( {tg_id}, 0, "{name}", "{username}", 1 )
             ''')
             await db.commit()
     else:
         async with aiosqlite.connect(database_path(db_name)) as db:
             await db.execute(f'''UPDATE users SET chat_count_mess = chat_count_mess + 1 WHERE tg_id = {tg_id}
+            ''')
+            await db.commit()
+
+async def make_admin(tg_id, db_name=db_name):
+    user = await get_user(tg_id)
+    if user is None:
+        print(f"Юзер не найден {tg_id}")
+    else:
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''UPDATE users SET is_admin = 1 WHERE tg_id = {tg_id}
             ''')
             await db.commit()
     
@@ -283,6 +304,8 @@ async def init_database(db_name):
         await db.execute('''CREATE TABLE users (
             id integer primary key autoincrement not null,
             tg_id integer not null unique,
+            name varchar(510),
+            username varchar(510),
             is_admin integer ,
             chat_count_mess integer DEFAULT 0,
             reputation real default 0
@@ -304,7 +327,8 @@ def get_database_connection(user_id):
     return aiosqlite.connect(database_path(user_id))
 
 if __name__ == "__main__":
-    asyncio.run(init_database(db_name))
+    #asyncio.run(init_database(db_name))
+    #asyncio.run(make_admin(253476728))
     #asyncio.run(add_user(db_name, tg_id=670354986, is_admin = 1))
     #print(asyncio.run(get_soc_info_by_name(name="Twitter")))
     #asyncio.run(add_first_backup_soc_by_name_soc("Twitter"))
@@ -315,7 +339,8 @@ if __name__ == "__main__":
     #print(asyncio.run(get_soc_name_by_id(3)))
     #print(asyncio.run(get_current_backup_by_time("Github")))
     #print(asyncio.run(get_current_text_by_name("join_soc")))
-    #asyncio.run(add_text_by_name("join_soc","Join our social medias"))
+    #asyncio.run(add_text_by_name("warning","⚠️ Warning: this service is not responsible for your transactions and possible fraud - be careful!"))
+    asyncio.run(delete_all_backup_soc())
     #asyncio.run(edit_backup_soc_by_atr(name_soc="Twitter",atr="invite_text", value="Заходите к нам в Твиттер"))
     #asyncio.run(init_wait_content_from())
     #print(asyncio.run(get_all_soc()))
