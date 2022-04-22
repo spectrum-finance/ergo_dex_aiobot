@@ -1,10 +1,17 @@
 import logging, os
+
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.utils.exceptions import BotBlocked
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.exceptions import BotBlocked, NetworkError
+
+from aiogram.dispatcher.filters import Text
+
 from dotenv import load_dotenv
 import asyncio
 from contextlib import suppress
 import InlineKeyboards
+import ReplyKeyboards
 from aiodata.main import *
 from tabulate import tabulate
 
@@ -26,6 +33,10 @@ from aiogram.utils.exceptions import (MessageToEditNotFound, MessageCantBeEdited
 from aiogram.dispatcher.webhook import AnswerCallbackQuery, AnswerInlineQuery, SendMessage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+
+
+
 from tasks_bot import on_startup
 
 
@@ -39,10 +50,15 @@ CHAT_ID= -1001721723642
 bot_sync = telebot.TeleBot(token=TOKEN_BOT)
 bot = Bot(token=TOKEN_BOT)
 # Диспетчер для бота
-dp = Dispatcher(bot)
+storage = MemoryStorage()
+dp = Dispatcher(bot, storage=storage)
 dp.middleware.setup(LoggingMiddleware())
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
+
+###############################
+####       EXCEPTIOS       ####
+###############################
 
 @dp.errors_handler(exception=BotBlocked)
 async def error_bot_blocked(update: types.Update, exception: BotBlocked):
@@ -54,6 +70,21 @@ async def error_bot_blocked(update: types.Update, exception: BotBlocked):
     # Такой хэндлер должен всегда возвращать True,
     # если дальнейшая обработка не требуется.
     return True
+
+@dp.errors_handler(exception=NetworkError)
+async def error_bot_blocked(update: types.Update, exception: NetworkError):
+    # Update: объект события от Telegram. Exception: объект исключения
+    # Здесь можно как-то обработать блокировку, например, удалить пользователя из БД
+    logging.info(f"Network error: {update}\nОшибка: {exception}")
+    print(f"Network error:\nСообщение: {update}\nОшибка: {exception}")
+
+    # Такой хэндлер должен всегда возвращать True,
+    # если дальнейшая обработка не требуется.
+    return True
+
+###############################
+####                       ####
+###############################
 
 # Хэндлер на команду /test1
 @dp.message_handler(commands="test1")
@@ -78,16 +109,31 @@ async def cmd_test1(message: types.Message):
     else:
         await message.reply("Test ")
 
-@dp.message_handler(commands="test2")
-async def cmd_test2(message: types.Message):
+
+@dp.message_handler(commands="most_active_user")
+async def cmd_most_active(message: types.Message):
     if message.chat.type == 'private':
-        await message.reply("Test 2 private")
+        if await is_admin(message.chat.id) == 1:
+            await message.reply("Привет админ")
+            user = await get_most_active_user()
+            user_id = user[1]
+            name = user[2]
+            username= user[3]
+            is_admin_user = user[4]
+            user_mess_count = user[5]
+            reputation = user[6]
+            mess = f"Самый активный пользователь в чате:  {name} @{username} \n   \n Кол-во сообщений: {user_mess_count}"
+            await message.answer(mess)
+
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
 
     elif message.chat.type == 'supergroup':
-        await message.reply("Test 2 group")
+        await message.reply("This command allow just in private")
 
 @dp.message_handler(commands="admin")
-async def cmd_test2(message: types.Message):
+async def cmd_admin(message: types.Message):
     if message.chat.type == 'private':
         if await is_admin(message.chat.id) == 1:
             await message.reply("Привет админ")
@@ -101,6 +147,116 @@ async def cmd_test2(message: types.Message):
     elif message.chat.type == 'supergroup':
         await message.reply("This command allow just in private")
 
+@dp.message_handler(commands="admin2")
+async def cmd_admin2(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            await message.reply("Привет админ")
+            #socials = await get_all_soc()
+            await message.answer('Выберите пункты для администрирования:', reply_markup= ReplyKeyboards.admin_keyboard)
+
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
+
+    elif message.chat.type == 'supergroup':
+        await message.reply("This command allow just in private")
+
+###################################
+############## State ##############
+###################################
+
+class EditSocials(StatesGroup):
+    name_soc = State()
+    atr_edit = State()
+    send_value = State()
+
+@dp.message_handler(Text(equals="Социальные сети"))
+async def admin_soc(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            #await message.reply("Привет админ")
+            #socials = await get_all_soc()
+            
+            await message.answer('Выберите социальную сеть:', reply_markup= await ReplyKeyboards.get_social_admin_keyboard())
+            await EditSocials.name_soc.set()
+            
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
+
+@dp.message_handler(state=EditSocials.name_soc)
+async def get_name_soc(message: types.Message, state: FSMContext):
+    available_soc_names = []
+    for soc in await get_all_soc():
+        text = soc[1]
+        available_soc_names.append(text)
+    if message.text not in available_soc_names:
+        await message.answer("Пожалуйста, выберите социальную сеть, используя клавиатуру ниже.")
+        return
+    await state.update_data(name_soc=message.text)
+
+    info_soc = await get_soc_info_by_name(message.text)
+    column_names = ['id', 'id_social', 'invite_text', 'url', 'img', 'time_edit']
+    info_soc_mess= f"[{message.text}]info:\n\n {column_names[2]}  :  {info_soc[2]} \n {column_names[3]}  :  {info_soc[3]} \n {column_names[4]}  :  {info_soc[4]}"
+    await message.answer(info_soc_mess)
+
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for size in ["invite_text","url","img"]:
+        keyboard.add(size)
+    # Для последовательных шагов можно не указывать название состояния, обходясь next()
+    await message.answer("Теперь выберите атрибут для редактирования: \n\nПерервать ввод можно командой /cancel", reply_markup=keyboard)
+    await EditSocials.next()
+
+@dp.message_handler(state=EditSocials.atr_edit)
+async def get_name_soc(message: types.Message, state: FSMContext):
+    if message.text not in ["invite_text","url","img"]:
+        await message.answer("Пожалуйста, выберите атрибут, используя клавиатуру ниже.")
+        return
+    await state.update_data(atr_edit=message.text)
+    
+    # Для последовательных шагов можно не указывать название состояния, обходясь next()
+    await message.answer("Введите новое значение атрибута: \n\nПрервать ввод /cancel", reply_markup=types.ReplyKeyboardRemove())
+    await EditSocials.next()
+
+
+@dp.message_handler(state=EditSocials.send_value)
+async def get_name_soc(message: types.Message, state: FSMContext):
+    if message.text in [""," ","."]:
+        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        return
+    await state.update_data(send_value=message.text)
+
+    data = await state.get_data()
+    await message.answer(f"Название соц сети: {data['name_soc']}\n"
+                         f"атрибут: {data['atr_edit']}\n"
+                         f"значение: {data['send_value']}\n")
+    
+    await edit_backup_soc_by_atr(data['name_soc'], data['atr_edit'], data['send_value'])
+
+    info_soc = await get_soc_info_by_name(data['name_soc'])
+    column_names = ['id', 'id_social', 'invite_text', 'url', 'img', 'time_edit']
+    info_soc_mess= f"[{data['name_soc']}]edited data:\n\n {column_names[2]}  :  {info_soc[2]} \n {column_names[3]}  :  {info_soc[3]} \n {column_names[4]}  :  {info_soc[4]}"
+    await message.answer(info_soc_mess)
+    
+    await state.finish()
+
+
+#@dp.message_handler(state=EditSocials.atr_edit)
+
+
+
+
+@dp.message_handler(state='*', commands='cancel')
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+
+    await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
+###################################
+##############       ##############
+###################################
 
 
 @dp.message_handler(commands="social")

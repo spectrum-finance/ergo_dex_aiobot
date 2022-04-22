@@ -4,6 +4,7 @@ import aiosqlite
 from datetime import datetime
 import asyncio
 
+
 BASE_DIR = os.path.dirname(__file__)
 STATE_DIR = sys.argv[1] if len(sys.argv) >= 2 else BASE_DIR
 
@@ -15,6 +16,10 @@ def database_path(db_name):
 def database_exists(db_name):
     #print(database_path(db_name))
     return os.path.exists(database_path(db_name))
+
+##################################################
+##############    USERS   ########################
+##################################################
 
 async def is_admin(tg_id, db_name=db_name):
     if database_exists(db_name):
@@ -35,9 +40,6 @@ async def add_user(db_name, tg_id, name, username, is_admin = 0):
             ''')
             await db.commit()
 
-
-
-
 async def get_all_users(db_name=db_name):
     if database_exists(db_name):
         #print(1)
@@ -45,6 +47,51 @@ async def get_all_users(db_name=db_name):
             res = await db.execute(f'''SELECT * FROM users ''')
             res = await res.fetchall()
             return res
+
+async def get_user(tg_id, db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            res = await db.execute(f'''SELECT * FROM users WHERE tg_id = {tg_id}''')
+            res = await res.fetchone()
+            return res
+
+async def get_most_active_user( db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            res = await db.execute(f'''SELECT * FROM users ORDER BY chat_count_mess DESC''')
+            res = await res.fetchone()
+            return res
+
+async def count_mess_user(tg_id, name, username, db_name=db_name):
+    user = await get_user(tg_id)
+    if user is None:
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''INSERT INTO users(tg_id, is_admin, name, username, chat_count_mess) VALUES
+                ( {tg_id}, 0, "{name}", "{username}", 1 )
+            ''')
+            await db.commit()
+    else:
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''UPDATE users SET chat_count_mess = chat_count_mess + 1 WHERE tg_id = {tg_id}
+            ''')
+            await db.commit()
+
+async def make_admin(tg_id, db_name=db_name):
+    user = await get_user(tg_id)
+    if user is None:
+        print(f"Юзер не найден {tg_id}")
+    else:
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''UPDATE users SET is_admin = 1 WHERE tg_id = {tg_id}
+            ''')
+            await db.commit()
+
+##################################################
+##############   SOCIALS INFO    #################
+##################################################
+
 
 async def get_all_soc(db_name=db_name):
     if database_exists(db_name):
@@ -80,7 +127,7 @@ async def get_soc_info_by_name(name, db_name=db_name):
     if database_exists(db_name):
         #print(1)
         async with aiosqlite.connect(database_path(db_name)) as db:
-            res = await db.execute(f'''SELECT * FROM backup_soc WHERE id_social = {await get_soc_id_by_name(name)} ''')
+            res = await db.execute(f'''SELECT * FROM backup_soc WHERE id_social = {await get_soc_id_by_name(name)} ORDER BY time_edit DESC''')
             res = await res.fetchone()
             return res
 
@@ -181,6 +228,10 @@ async def delete_soc_by_name(db_name, name):
             ''')
             await db.commit()
 
+##################################################
+############     WAIT CONTENT    #################
+##################################################
+
 async def add_wait_content_from(tg_id,for_, db_name=db_name):
     if database_exists(db_name):
         #print(1)
@@ -189,6 +240,26 @@ async def add_wait_content_from(tg_id,for_, db_name=db_name):
                 ( {tg_id}, "{for_}" )
             ''')
             await db.commit()
+
+async def delete_wait_content_from(tg_id, db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''DELETE FROM wait_content WHERE tg_id = "{tg_id}"
+            ''')
+            await db.commit()
+
+async def init_wait_content_from():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        await db.execute('''CREATE TABLE wait_content (
+                tg_id integer not null,
+                for varchar(200) not null
+            )''')
+        await db.commit()
+            
+##################################################
+##############      TEXT         #################
+##################################################
 
 async def add_text_by_name(name,text, db_name=db_name):
     if database_exists(db_name):
@@ -210,62 +281,7 @@ async def get_current_text_by_name(name, db_name=db_name):
 
 
 
-async def delete_wait_content_from(tg_id, db_name=db_name):
-    if database_exists(db_name):
-        #print(1)
-        async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''DELETE FROM wait_content WHERE tg_id = "{tg_id}"
-            ''')
-            await db.commit()
 
-async def init_wait_content_from():
-    async with aiosqlite.connect(database_path(db_name)) as db:
-        await db.execute('''CREATE TABLE wait_content (
-                tg_id integer not null,
-                for varchar(200) not null
-            )''')
-        await db.commit()
-
-async def get_user(tg_id, db_name=db_name):
-    if database_exists(db_name):
-        #print(1)
-        async with aiosqlite.connect(database_path(db_name)) as db:
-            res = await db.execute(f'''SELECT * FROM users WHERE tg_id = {tg_id}''')
-            res = await res.fetchone()
-            return res
-
-async def get_most_active_user( db_name=db_name):
-    if database_exists(db_name):
-        #print(1)
-        async with aiosqlite.connect(database_path(db_name)) as db:
-            res = await db.execute(f'''SELECT * FROM users ORDER BY chat_count_mess DESC''')
-            res = await res.fetchone()
-            return res
-
-async def count_mess_user(tg_id, name, username, db_name=db_name):
-    user = await get_user(tg_id)
-    if user is None:
-        async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''INSERT INTO users(tg_id, is_admin, name, username, chat_count_mess) VALUES
-                ( {tg_id}, 0, "{name}", "{username}", 1 )
-            ''')
-            await db.commit()
-    else:
-        async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''UPDATE users SET chat_count_mess = chat_count_mess + 1 WHERE tg_id = {tg_id}
-            ''')
-            await db.commit()
-
-async def make_admin(tg_id, db_name=db_name):
-    user = await get_user(tg_id)
-    if user is None:
-        print(f"Юзер не найден {tg_id}")
-    else:
-        async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''UPDATE users SET is_admin = 1 WHERE tg_id = {tg_id}
-            ''')
-            await db.commit()
-    
 
 async def init_database(db_name):
     
@@ -340,11 +356,11 @@ if __name__ == "__main__":
     #print(asyncio.run(get_current_backup_by_time("Github")))
     #print(asyncio.run(get_current_text_by_name("join_soc")))
     #asyncio.run(add_text_by_name("warning","⚠️ Warning: this service is not responsible for your transactions and possible fraud - be careful!"))
-    asyncio.run(delete_all_backup_soc())
+    #print(asyncio.run(get_all_users()))
     #asyncio.run(edit_backup_soc_by_atr(name_soc="Twitter",atr="invite_text", value="Заходите к нам в Твиттер"))
     #asyncio.run(init_wait_content_from())
     #print(asyncio.run(get_all_soc()))
-    #print(asyncio.run(is_admin(tg_id=2534767278 )))
+    print(asyncio.run(is_admin(tg_id=253476728)))
     #asyncio.run(add_soc(db_name,"VK"))
     #asyncio.run(delete_soc_by_name(db_name, "VK"))
     #print(asyncio.run(get_user(253476738)))
