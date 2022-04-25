@@ -3,7 +3,7 @@ import sys
 import aiosqlite
 from datetime import datetime
 import asyncio
-
+from PIL import Image
 
 BASE_DIR = os.path.dirname(__file__)
 STATE_DIR = sys.argv[1] if len(sys.argv) >= 2 else BASE_DIR
@@ -84,8 +84,7 @@ async def make_admin(tg_id, db_name=db_name):
         print(f"Юзер не найден {tg_id}")
     else:
         async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''UPDATE users SET is_admin = 1 WHERE tg_id = {tg_id}
-            ''')
+            await db.execute(f'''UPDATE users SET is_admin = 1 WHERE tg_id = {tg_id}''')
             await db.commit()
 
 ##################################################
@@ -278,7 +277,64 @@ async def get_current_text_by_name(name, db_name=db_name):
             res = await res.fetchone()
             return res
 
+def convert_data(data, file_name):
+     
+    # Convert binary format to
+    # images or files data
+    with open(file_name, 'wb') as file:
+        file.write(data)
+    img = Image.open(file_name)
+    print(img)
 
+async def get_all_texts(db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            res = await db.execute(f'''SELECT name FROM text ORDER BY time_edit DESC''')
+            res = await res.fetchall()
+            return res
+
+async def edit_text_by_atr(name, atr, value, db_name=db_name):
+    if database_exists(db_name):
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''UPDATE text SET {atr} = "{value}" WHERE name = "{name}"
+                    ''')
+            await db.commit()
+
+async def insertBLOBtext(name_text, photo, db_name=db_name):
+    if database_exists(db_name):
+        current_soc = list(await get_current_text_by_name(name_text))
+        id_text = current_soc[0]
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            Photo = await convertToBinaryData(photo)
+            await db.execute(f"""UPDATE text SET img = (?) WHERE id = {id_text}""",(Photo,))
+            await db.commit()
+
+
+
+#await db.execute(f"""UPDATE backup_soc SET img = (?) WHERE id = {id_soc}""",(Photo,))
+#            await db.commit()
+
+##################################################
+##############                   #################
+##################################################
+
+async def convertToBinaryData(filename):
+    # Convert digital data to binary format
+    with open(filename, 'rb') as file:
+        blobData = file.read()
+    return blobData
+
+async def insertBLOBsoc(name_soc, photo, db_name=db_name):
+    if database_exists(db_name):
+        current_soc = list(await get_current_backup_by_time(name_soc))
+        id_soc = current_soc[0]
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            Photo = await convertToBinaryData(photo)
+            await db.execute(f"""UPDATE backup_soc SET img = (?) WHERE id = {id_soc}""",(Photo,))
+            await db.commit()
 
 
 
@@ -344,7 +400,11 @@ def get_database_connection(user_id):
 
 if __name__ == "__main__":
     #asyncio.run(init_database(db_name))
-    #asyncio.run(make_admin(253476728))
+    #asyncio.run(make_admin(196887301))
+    #asyncio.run(insertBLOBsoc("Twitter", "test_23_22_21.jpg"))
+    #print(asyncio.run(get_all_texts()))
+    blob_data = asyncio.run(get_current_text_by_name("warning"))[3]
+    convert_data(blob_data, "image.jpg")
     #asyncio.run(add_user(db_name, tg_id=670354986, is_admin = 1))
     #print(asyncio.run(get_soc_info_by_name(name="Twitter")))
     #asyncio.run(add_first_backup_soc_by_name_soc("Twitter"))
@@ -360,7 +420,8 @@ if __name__ == "__main__":
     #asyncio.run(edit_backup_soc_by_atr(name_soc="Twitter",atr="invite_text", value="Заходите к нам в Твиттер"))
     #asyncio.run(init_wait_content_from())
     #print(asyncio.run(get_all_soc()))
-    print(asyncio.run(is_admin(tg_id=253476728)))
+    #print(asyncio.run(is_admin(tg_id=253476728)))
+    #asyncio.run(insertBLOBsoc( "test_23_22_21.jpg" ))
     #asyncio.run(add_soc(db_name,"VK"))
     #asyncio.run(delete_soc_by_name(db_name, "VK"))
     #print(asyncio.run(get_user(253476738)))

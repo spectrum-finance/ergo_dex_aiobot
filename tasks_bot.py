@@ -3,11 +3,11 @@ import aioschedule
 from dotenv import load_dotenv
 import asyncio
 from aiodata.main import *
-
+import os
 import pandas as pd
 import requests
 import datetime, time
-
+from PIL import Image
 
 
 
@@ -31,9 +31,27 @@ def get_markets2():
     return res
 
 async def warning_chat():
-    text = await get_current_text_by_name("warning")
-    text = text[1]
-    bot_sync.send_message(CHAT_ID, text)
+    text_atrs = await get_current_text_by_name("warning")
+    text = text_atrs[1]
+    text_img = text_atrs[3]
+    if text_img is None or text_img == "NULL":
+        bot_sync.send_message(CHAT_ID, text)
+    else:
+        now = datetime.datetime.now()
+        current_time = now.strftime("_%H_%M_%S")
+        filename = f'dbimage{current_time}.jpg'
+        path = f'aiodata/{filename}'
+        convert_data(text_img, filename)
+        print(path)
+        #img.save(file)
+        img = open(filename, 'rb')
+        bot_sync.send_message(CHAT_ID, text )
+        bot_sync.send_photo(CHAT_ID, img)
+        img.close()
+
+
+        os.remove(filename)
+
 
 def warning():
     try:
@@ -45,14 +63,36 @@ def warning():
             asyncio.run(warning_chat())
 
 async def join_soc_chat():
-    text = (await get_current_text_by_name("join_soc"))[1]
+    text_atrs = await get_current_text_by_name("join_soc")
+    text = text_atrs[1]
+    text_img = text_atrs[3]
+    print("text_img", text_img)
     all_current = await get_all_current_backup_by_time_pretty()
     print(text)
     print(all_current)
     markup = telebot.types.InlineKeyboardMarkup()
     for soc in all_current:
         markup.add(telebot.types.InlineKeyboardButton(soc[1], url = soc[3]))
-    bot_sync.send_message(CHAT_ID, text ,reply_markup=markup)
+    if text_img is None or text_img == "NULL":
+        bot_sync.send_message(CHAT_ID, text ,reply_markup=markup)
+    else:
+        #img = Image.open(text_img)
+        #img.show()
+        now = datetime.datetime.now()
+        current_time = now.strftime("_%H_%M_%S")
+        filename = f'dbimage{current_time}.jpg'
+        path = f'aiodata/{filename}'
+        convert_data(text_img, filename)
+        print(path)
+        #img.save(file)
+        img = open(filename, 'rb')
+        bot_sync.send_message(CHAT_ID, text ,reply_markup=markup)
+        bot_sync.send_photo(CHAT_ID, img)
+        img.close()
+
+
+        os.remove(filename)
+
 
     #reply_markup = await InlineKeyboards.get_social_join_keyboard()
 
@@ -107,10 +147,10 @@ Total Volume %: {2}
 
 
 async def scheduler():
-    aioschedule.every().day.at("22:41").do(join)
-    aioschedule.every().day.at("22:41").do(warning)
-    aioschedule.every().day.at("22:41").do(most_active_user)
-    aioschedule.every().day.at("22:41").do(metrics_chat)
+    aioschedule.every().day.at("14:50").do(join)
+    aioschedule.every().day.at("14:53").do(warning)
+    aioschedule.every().day.at("02:24").do(most_active_user)
+    aioschedule.every().day.at("02:24").do(metrics_chat)
     
     while True:
         await aioschedule.run_pending()

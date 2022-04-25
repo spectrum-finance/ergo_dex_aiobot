@@ -6,6 +6,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.exceptions import BotBlocked, NetworkError
 
 from aiogram.dispatcher.filters import Text
+import aiofiles.os as aios
 
 from dotenv import load_dotenv
 import asyncio
@@ -171,6 +172,7 @@ class EditSocials(StatesGroup):
     atr_edit = State()
     send_value = State()
 
+
 @dp.message_handler(Text(equals="Социальные сети"))
 async def admin_soc(message: types.Message):
     if message.chat.type == 'private':
@@ -185,6 +187,22 @@ async def admin_soc(message: types.Message):
             print(message.chat.id)
             await message.reply("Ты не админ")
 
+@dp.message_handler(Text(equals="Тексты"))
+async def admin_text(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            #await message.reply("Привет админ")
+            #socials = await get_all_soc()
+            
+            await message.answer('Выберите текст:', reply_markup= await ReplyKeyboards.get_text_admin_keyboard())
+            await EditTexts.name_text.set()
+            
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
+
+#Социальные сети
+
 @dp.message_handler(state=EditSocials.name_soc)
 async def get_name_soc(message: types.Message, state: FSMContext):
     available_soc_names = []
@@ -196,8 +214,10 @@ async def get_name_soc(message: types.Message, state: FSMContext):
         return
     await state.update_data(name_soc=message.text)
 
-    info_soc = await get_soc_info_by_name(message.text)
+    info_soc = list(await get_soc_info_by_name(message.text))
     column_names = ['id', 'id_social', 'invite_text', 'url', 'img', 'time_edit']
+    if not info_soc[4] is None:
+        info_soc[4] = "img uploaded"
     info_soc_mess= f"[{message.text}]info:\n\n {column_names[2]}  :  {info_soc[2]} \n {column_names[3]}  :  {info_soc[3]} \n {column_names[4]}  :  {info_soc[4]}"
     await message.answer(info_soc_mess)
 
@@ -208,8 +228,10 @@ async def get_name_soc(message: types.Message, state: FSMContext):
     await message.answer("Теперь выберите атрибут для редактирования: \n\nПерервать ввод можно командой /cancel", reply_markup=keyboard)
     await EditSocials.next()
 
+
+
 @dp.message_handler(state=EditSocials.atr_edit)
-async def get_name_soc(message: types.Message, state: FSMContext):
+async def get_atr(message: types.Message, state: FSMContext):
     if message.text not in ["invite_text","url","img"]:
         await message.answer("Пожалуйста, выберите атрибут, используя клавиатуру ниже.")
         return
@@ -220,13 +242,14 @@ async def get_name_soc(message: types.Message, state: FSMContext):
     await EditSocials.next()
 
 
+
 @dp.message_handler(state=EditSocials.send_value)
-async def get_name_soc(message: types.Message, state: FSMContext):
+async def get_value(message: types.Message, state: FSMContext):
+    #print(1)
     if message.text in [""," ","."]:
         await message.answer("Пожалуйста, введите не пустой значение атрибута")
         return
     await state.update_data(send_value=message.text)
-
     data = await state.get_data()
     await message.answer(f"Название соц сети: {data['name_soc']}\n"
                          f"атрибут: {data['atr_edit']}\n"
@@ -241,19 +264,145 @@ async def get_name_soc(message: types.Message, state: FSMContext):
     
     await state.finish()
 
+@dp.message_handler(state=EditSocials.send_value, content_types=['photo'])
+async def get_value(message: types.Message, state: FSMContext):
+    #print(1)
+    if message.text in [""," ","."]:
+        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        return
+    await state.update_data(send_value=message.text)
+    data = await state.get_data()
+    try:
+        now = datetime.datetime.now()
+        current_time = now.strftime("_%H_%M_%S")
+        file = f'value{current_time}.jpg'
+        path = f'aiodata/{file}'
+        await message.photo[-1].download(path)
+        await insertBLOBsoc(data['name_soc'], path)
+        print(message.photo)
+    except Exception as e:
+        print(e)
+
+
+    await message.answer(f"Название соц сети: {data['name_soc']}\n"
+                         f"атрибут: {data['atr_edit']}\n"
+                         )
+
+    info_soc = await get_soc_info_by_name(data['name_soc'])
+    column_names = ['id', 'id_social', 'invite_text', 'url', 'img', 'time_edit']
+    info_soc_mess= f"[{data['name_soc']}]edited data:\n\n {column_names[2]}  :  {info_soc[2]} \n {column_names[3]}  :  {info_soc[3]} \n "
+    await message.answer(info_soc_mess)
+    
+    await state.finish()
+
+#Тексты
+
+class EditTexts(StatesGroup):
+    name_text = State()
+    atr_edit = State()
+    send_value = State()
+
+@dp.message_handler(state='*', commands='cancel')
+@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+
+    await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
+
+@dp.message_handler(state=EditTexts.name_text)
+async def get_name_text(message: types.Message, state: FSMContext):
+    available_text_names = []
+    texts = await get_all_texts()
+    for text in texts:
+        available_text_names.append(text[0])
+    if message.text not in available_text_names:
+        await message.answer("Пожалуйста, выберите социальную сеть, используя клавиатуру ниже.")
+        return
+    await state.update_data(name_text=message.text)
+    info_text = list(await get_current_text_by_name(message.text))
+    column_names = ['id', 'text', 'name', 'img', 'time_edit']
+    if not info_text[3] is None:
+        info_text[3] = "img uploaded"
+
+    info_text_mess= f"[{message.text}]info:\n\n {column_names[1]}  :  {info_text[1]} \n {column_names[2]}  :  {info_text[2]} \n {column_names[3]}  :  {info_text[3]}"
+    await message.answer(info_text_mess)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    for i in ["text","img"]:
+        keyboard.add(i)
+    # Для последовательных шагов можно не указывать название состояния, обходясь next()
+    await message.answer("Теперь выберите атрибут для редактирования: \n\nПерервать ввод можно командой /cancel", reply_markup=keyboard)
+    await EditTexts.next()
+
+
+@dp.message_handler(state=EditTexts.atr_edit)
+async def get_atr(message: types.Message, state: FSMContext):
+    if message.text not in ["text","img"]:
+        await message.answer("Пожалуйста, выберите атрибут, используя клавиатуру ниже.")
+        return
+    await state.update_data(atr_edit=message.text)
+    await message.answer("Введите новое значение атрибута: \n\nПрервать ввод /cancel", reply_markup=types.ReplyKeyboardRemove())
+    await EditTexts.next()
+
+@dp.message_handler(state=EditTexts.send_value)
+async def get_value(message: types.Message, state: FSMContext):
+    if message.text in [""," ","."]:
+        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        return
+    await state.update_data(send_value=message.text)
+    data = await state.get_data()
+    await message.answer(f"Название текста: {data['name_text']}\n"
+                         f"атрибут: {data['atr_edit']}\n"
+                         f"значение: {data['send_value']}\n")
+    await edit_text_by_atr(data['name_text'], data['atr_edit'], data['send_value'])
+
+    info_text = list(await get_current_text_by_name(data['name_text']))
+    column_names = ['id', 'text', 'name', 'img', 'time_edit']
+    if not info_text[3] is None:
+        info_text[3] = "img uploaded"
+
+    info_text_mess= f"[{data['name_text']}] info:\n\n {column_names[1]}  :  {info_text[1]} \n {column_names[2]}  :  {info_text[2]} \n {column_names[3]}  :  {info_text[3]}"
+    await message.answer(info_text_mess)
+
+    await state.finish()
+
+@dp.message_handler(state=EditTexts.send_value, content_types=['photo'])
+async def get_value(message: types.Message, state: FSMContext):
+    if message.text in [""," ","."]:
+        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        return
+    await state.update_data(send_value=message.text)
+    data = await state.get_data()
+    try:
+        now = datetime.datetime.now()
+        current_time = now.strftime("_%H_%M_%S")
+        file = f'value{current_time}.jpg'
+        path = f'aiodata/{file}'
+        await message.photo[-1].download(path)
+        await insertBLOBtext(data['name_text'], path)
+        await delete_local_file(path)
+        print(message.photo)
+    except Exception as e:
+        print(e)
+
+    await state.finish()
+
+async def delete_local_file(file_to_del):
+    await aios.remove(file_to_del)
+    print("deleted: "+file_to_del)
+
+
 
 #@dp.message_handler(state=EditSocials.atr_edit)
 
 
 
 
-@dp.message_handler(state='*', commands='cancel')
-async def cancel_handler(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state is None:
-        return
 
-    await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
+
 ###################################
 ##############       ##############
 ###################################
