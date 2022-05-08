@@ -296,6 +296,7 @@ async def get_value(message: types.Message, state: FSMContext):
     await state.finish()
 
 #Тексты
+#State
 
 class EditTexts(StatesGroup):
     name_text = State()
@@ -404,7 +405,7 @@ async def delete_local_file(file_to_del):
 
 
 ###################################
-##############       ##############
+########### commands   ############
 ###################################
 
 
@@ -430,7 +431,7 @@ async def send_warning_chat():
     bot.send_message(CHAT_ID, (await get_current_text_by_name("warning"))[1])
 
 
-
+# in chat buttons callbacks
 @dp.callback_query_handler()
 async def navigate(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
@@ -494,11 +495,12 @@ async def navigate(callback_query: types.CallbackQuery):
 
     return AnswerCallbackQuery(callback_query.id)
 
-
+# handler for all simple msgs
 @dp.message_handler()
 async def send_message(msg: types.Message):
     chat_type =  msg["chat"]["type"]
     user_id = msg.from_user.id
+
     if chat_type == "private":
         if "add_atr" in msg.text and await is_admin(user_id):
             query = msg.text.split(" ")
@@ -516,6 +518,7 @@ async def send_message(msg: types.Message):
                     await edit_backup_soc_by_atr(name_soc=name_soc,atr="url", value=query[3])
                 await bot.send_message(msg.chat.id, f'DONE, current state of {name_soc} :\n\t'+ str(await get_current_backup_by_time(name_soc)))
                 pass
+
     elif chat_type == "supergroup":
         chat_id =  msg["chat"]["id"]
         name = str(msg["from"]["first_name"]) + " " + str(msg["from"]["last_name"])
@@ -523,6 +526,20 @@ async def send_message(msg: types.Message):
         if int(chat_id) == CHAT_ID:
             await count_mess_user(user_id, name, username)
             print("Подсчитать")
+
+            if "reply_to_message" in msg:
+                user_reply_id = msg["from"]["id"]
+                user_source_id = msg["reply_to_message"]["from"]["id"]
+
+                if user_reply_id != user_source_id: 
+                    if msg.text == '+' or '++' or '+++':
+                        print("+1 rep ")
+                    else:
+                        print("+0.1 rep ")
+                    print( msg["reply_to_message"])
+                else:
+                    print("user reply ur own message")
+
         print("NON COMMAND MSG supergroup: ", msg)
 
     #await bot.send_message(msg.chat.id, 'hi there')

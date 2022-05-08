@@ -34,6 +34,13 @@ async def warning_chat():
     text_atrs = await get_current_text_by_name("warning")
     text = text_atrs[1]
     text_img = text_atrs[3]
+    bot_sync.send_message(CHAT_ID, text)
+
+
+async def warning_chat_image():
+    text_atrs = await get_current_text_by_name("warning")
+    text = text_atrs[1]
+    text_img = text_atrs[3]
     if text_img is None or text_img == "NULL":
         bot_sync.send_message(CHAT_ID, text)
     else:
@@ -63,6 +70,21 @@ def warning():
             asyncio.run(warning_chat())
 
 async def join_soc_chat():
+    text_atrs = await get_current_text_by_name("join_soc")
+    text = text_atrs[1]
+    text_img = text_atrs[3]
+    print("text_img", text_img)
+    all_current = await get_all_current_backup_by_time_pretty()
+    print(text)
+    print(all_current)
+    text_soc = ""
+    for soc in all_current:
+        text_soc += soc[1]+"  " +soc[3]+"\n"
+    common_text = text + "\n\n" + text_soc
+    bot_sync.send_message( CHAT_ID, common_text )
+
+
+async def join_soc_chat_image():
     text_atrs = await get_current_text_by_name("join_soc")
     text = text_atrs[1]
     text_img = text_atrs[3]
@@ -124,8 +146,6 @@ async def join_soc_chat_buttons():
         bot_sync.send_message(CHAT_ID, text ,reply_markup=markup)
         bot_sync.send_photo(CHAT_ID, img)
         img.close()
-
-
         os.remove(filename)
 
 
