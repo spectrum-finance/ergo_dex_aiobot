@@ -7,3 +7,5 @@ v0.0.1
   python aiodata/main.py <br />
   python bot_aio.py <br />
   
+Change CHAT_ID in the bot_aio.py file to group id
+  
