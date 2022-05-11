@@ -1,5 +1,5 @@
 venv
 .env
 bot.py
-taska.py
+tasks.py
 bot.py
