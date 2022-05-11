@@ -403,8 +403,8 @@ if __name__ == "__main__":
     #asyncio.run(make_admin(196887301))
     #asyncio.run(insertBLOBsoc("Twitter", "test_23_22_21.jpg"))
     #print(asyncio.run(get_all_texts()))
-    blob_data = asyncio.run(get_current_text_by_name("warning"))[3]
-    convert_data(blob_data, "image.jpg")
+    #blob_data = asyncio.run(get_current_text_by_name("warning"))[3]
+    #convert_data(blob_data, "image.jpg")
     #asyncio.run(add_user(db_name, tg_id=670354986, is_admin = 1))
     #print(asyncio.run(get_soc_info_by_name(name="Twitter")))
     #asyncio.run(add_first_backup_soc_by_name_soc("Twitter"))
