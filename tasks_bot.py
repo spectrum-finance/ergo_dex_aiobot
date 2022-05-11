@@ -9,6 +9,8 @@ import requests
 import datetime, time
 from PIL import Image
 
+LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+
 
 
 load_dotenv()
@@ -79,9 +81,9 @@ async def join_soc_chat():
     print(all_current)
     text_soc = ""
     for soc in all_current:
-        text_soc += soc[1]+"  " +soc[3]+"\n"
+        text_soc += soc[2]+"  " +soc[3]+"\n"
     common_text = text + "\n\n" + text_soc
-    bot_sync.send_message( CHAT_ID, common_text )
+    bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True )
 
 
 async def join_soc_chat_image():
@@ -97,7 +99,7 @@ async def join_soc_chat_image():
         text_soc += soc[1]+"  " +soc[3]+"\n"
     common_text = text + "\n\n" + text_soc
     if text_img is None or text_img == "NULL":
-        bot_sync.send_message( CHAT_ID, common_text )
+        bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True )
     else:
         #img = Image.open(text_img)
         #img.show()
@@ -200,10 +202,14 @@ Total Volume %: {2}
 
 
 async def scheduler():
-    aioschedule.every().day.at("21:26").do(join)
-    aioschedule.every().day.at("14:53").do(warning)
-    aioschedule.every().day.at("02:24").do(most_active_user)
-    aioschedule.every().day.at("02:24").do(metrics_chat)
+    aioschedule.every().day.at("19:00").do(join) # через день в 18:00 ТОЛЬКО ЭТО
+    aioschedule.every().monday.at("19:00").do(join)
+    aioschedule.every().wednesday.at("19:00").do(join)
+    aioschedule.every().friday.at("19:00").do(join)
+    aioschedule.every().sunday.at("19:00").do(join)
+    #aioschedule.every().day.at("14:53").do(warning)
+    #aioschedule.every().day.at("02:24").do(most_active_user)
+    #aioschedule.every().day.at("02:24").do(metrics_chat)
     
     while True:
         await aioschedule.run_pending()

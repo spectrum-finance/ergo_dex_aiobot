@@ -133,22 +133,22 @@ async def cmd_most_active(message: types.Message):
     elif message.chat.type == 'supergroup':
         await message.reply("This command allow just in private")
 
+# @dp.message_handler(commands="admin")
+# async def cmd_admin(message: types.Message):
+#     if message.chat.type == 'private':
+#         if await is_admin(message.chat.id) == 1:
+#             await message.reply("Привет админ")
+#             socials = await get_all_soc()
+#             await message.answer('Редактирование панели социальных сетей:', reply_markup=await InlineKeyboards.get_social_admin_keyboard())
+
+#         else:
+#             print(message.chat.id)
+#             await message.reply("Ты не админ")
+
+#     elif message.chat.type == 'supergroup':
+#         await message.reply("This command allow just in private")
+
 @dp.message_handler(commands="admin")
-async def cmd_admin(message: types.Message):
-    if message.chat.type == 'private':
-        if await is_admin(message.chat.id) == 1:
-            await message.reply("Привет админ")
-            socials = await get_all_soc()
-            await message.answer('Редактирование панели социальных сетей:', reply_markup=await InlineKeyboards.get_social_admin_keyboard())
-
-        else:
-            print(message.chat.id)
-            await message.reply("Ты не админ")
-
-    elif message.chat.type == 'supergroup':
-        await message.reply("This command allow just in private")
-
-@dp.message_handler(commands="admin2")
 async def cmd_admin2(message: types.Message):
     if message.chat.type == 'private':
         if await is_admin(message.chat.id) == 1:
