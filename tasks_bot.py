@@ -8,8 +8,10 @@ import pandas as pd
 import requests
 import datetime, time
 from PIL import Image
+from aiogram.utils.markdown import link
 
 LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+print("LOCAL_TIME ",datetime.datetime.now())
 
 
 
@@ -81,9 +83,10 @@ async def join_soc_chat():
     print(all_current)
     text_soc = ""
     for soc in all_current:
-        text_soc += soc[2]+"  " +soc[3]+"\n"
+        text_soc += link(soc[2], soc[3]) +"\n"
+        #text_soc += soc[2]+"  " +soc[3]+"\n"
     common_text = text + "\n\n" + text_soc
-    bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True )
+    bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True, parse_mode="Markdown" )
 
 
 async def join_soc_chat_image():
@@ -202,11 +205,11 @@ Total Volume %: {2}
 
 
 async def scheduler():
-    aioschedule.every().day.at("19:00").do(join) # через день в 18:00 ТОЛЬКО ЭТО
-    aioschedule.every().monday.at("19:00").do(join)
-    aioschedule.every().wednesday.at("19:00").do(join)
-    aioschedule.every().friday.at("19:00").do(join)
-    aioschedule.every().sunday.at("19:00").do(join)
+    #aioschedule.every().day.at("20:02").do(join) # через день в 18:00 ТОЛЬКО ЭТО
+    aioschedule.every().monday.at("18:00").do(join)
+    aioschedule.every().wednesday.at("18:00").do(join)
+    aioschedule.every().friday.at("18:00").do(join)
+    aioschedule.every().sunday.at("18:00").do(join)
     #aioschedule.every().day.at("14:53").do(warning)
     #aioschedule.every().day.at("02:24").do(most_active_user)
     #aioschedule.every().day.at("02:24").do(metrics_chat)
