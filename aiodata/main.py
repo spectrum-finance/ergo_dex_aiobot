@@ -407,7 +407,7 @@ if __name__ == "__main__":
     #convert_data(blob_data, "image.jpg")
     #asyncio.run(add_user(db_name, tg_id=670354986, is_admin = 1))
     #print(asyncio.run(get_soc_info_by_name(name="Twitter")))
-    #asyncio.run(add_first_backup_soc_by_name_soc("Twitter"))
+    #asyncio.run(add_first_backup_soc_by_name_soc("Telegram"))
     #asyncio.run(add_wait_content_from(2534767278,"img soc Discord"))
     #asyncio.run(delete_wait_content_from(2534767278))
     #asyncio.run(get_all_current_backup_by_time_pretty())
@@ -422,7 +422,8 @@ if __name__ == "__main__":
     #print(asyncio.run(get_all_soc()))
     #print(asyncio.run(is_admin(tg_id=253476728)))
     #asyncio.run(insertBLOBsoc( "test_23_22_21.jpg" ))
-    #asyncio.run(add_soc(db_name,"VK"))
+    #asyncio.run(add_soc(db_name,"Telegram"))
+   
     #asyncio.run(delete_soc_by_name(db_name, "VK"))
     #print(asyncio.run(get_user(253476738)))
     #asyncio.run(count_mess_user(253476728))

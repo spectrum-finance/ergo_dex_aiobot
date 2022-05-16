@@ -43,8 +43,10 @@ from tasks_bot import on_startup
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
-CHAT_ID=-1001489275471 #ErgoDEX chat com
-TEST_CHAT_ID= -1001721723642 #Test Bot Analyze
+CHAT_ID = os.getenv('CHAT_ID')
+#CHAT_ID=-1001489275471 #ErgoDEX chat com
+#TEST_CHAT_ID= -1001721723642 #Test Bot Analyze
+#CHAT_ID= -1001721723642 #Test Bot Analyze
 
 #logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
