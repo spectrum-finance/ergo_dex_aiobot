@@ -12,11 +12,12 @@ from aiogram.utils.markdown import link
 
 LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 print("LOCAL_TIME ",datetime.datetime.now())
-
+print("\n v0.1.0")
 
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
+
 
 CHAT_ID= -1001721723642
 
