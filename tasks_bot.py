@@ -210,9 +210,9 @@ async def scheduler():
     aioschedule.every().monday.at("18:00").do(join)
     aioschedule.every().wednesday.at("23:00").do(join)
     aioschedule.every().friday.at("18:00").do(join)
-    aioschedule.every().thursday.at("08:57").do(join)
+    aioschedule.every().thursday.at("10:59").do(join)
     aioschedule.every().sunday.at("18:00").do(join)
-    aioschedule.every().day.at("08:57").do(warning)
+    aioschedule.every().day.at("10:59").do(warning)
     #aioschedule.every().day.at("02:24").do(most_active_user)
     #aioschedule.every().day.at("02:24").do(metrics_chat)
     
