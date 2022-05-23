@@ -68,8 +68,8 @@ logging.basicConfig(level=logging.INFO)
 async def error_bot_blocked(update: types.Update, exception: BotBlocked):
     # Update: объект события от Telegram. Exception: объект исключения
     # Здесь можно как-то обработать блокировку, например, удалить пользователя из БД
-    logging.info(f"Меня заблокировал пользователь!\nСообщение: {update}\nОшибка: {exception}")
-    print(f"Меня заблокировал пользователь!\nСообщение: {update}\nОшибка: {exception}")
+    logging.info(f"The user blocked the bot!\n Mess: {update}\n Error: {exception}")
+    print(f"The user blocked the bot!\n Mess: {update}\n Error: {exception}")
 
     # Такой хэндлер должен всегда возвращать True,
     # если дальнейшая обработка не требуется.
@@ -79,8 +79,8 @@ async def error_bot_blocked(update: types.Update, exception: BotBlocked):
 async def error_bot_blocked(update: types.Update, exception: NetworkError):
     # Update: объект события от Telegram. Exception: объект исключения
     # Здесь можно как-то обработать блокировку, например, удалить пользователя из БД
-    logging.info(f"Network error: {update}\nОшибка: {exception}")
-    print(f"Network error:\nСообщение: {update}\nОшибка: {exception}")
+    logging.info(f"Network error: {update}\n Error: {exception}")
+    print(f"Network error:\n Message: {update}\n Error: {exception}")
 
     # Такой хэндлер должен всегда возвращать True,
     # если дальнейшая обработка не требуется.
@@ -154,16 +154,26 @@ async def cmd_most_active(message: types.Message):
 async def cmd_admin2(message: types.Message):
     if message.chat.type == 'private':
         if await is_admin(message.chat.id) == 1:
-            await message.reply("Привет админ")
+            await message.reply("Access rights are confirmed")
             #socials = await get_all_soc()
             await message.answer('Select the administration points:', reply_markup= ReplyKeyboards.admin_keyboard)
 
         else:
             print(message.chat.id)
-            await message.reply("Ты не админ")
+            await message.reply("You are not an admin")
 
     elif message.chat.type == 'supergroup':
         await message.reply("This command allow just in private")
+
+@dp.message_handler(state='*', commands='cancel')
+@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+
+    await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
 ###################################
 ############## State ##############
@@ -175,7 +185,7 @@ class EditSocials(StatesGroup):
     send_value = State()
 
 
-@dp.message_handler(Text(equals="Социальные сети"))
+@dp.message_handler(Text(equals="Social media"))
 async def admin_soc(message: types.Message):
     if message.chat.type == 'private':
         if await is_admin(message.chat.id) == 1:
@@ -189,7 +199,7 @@ async def admin_soc(message: types.Message):
             print(message.chat.id)
             await message.reply("Ты не админ")
 
-@dp.message_handler(Text(equals="Тексты"))
+@dp.message_handler(Text(equals="Texts"))
 async def admin_text(message: types.Message):
     if message.chat.type == 'private':
         if await is_admin(message.chat.id) == 1:
@@ -203,11 +213,17 @@ async def admin_text(message: types.Message):
             print(message.chat.id)
             await message.reply("Ты не админ")
 
+@dp.message_handler(Text(equals="Main menu"))
+async def admin_text(message: types.Message):
+    if message.chat.type == 'private':   
+        await message.answer('Main menu in development', reply_markup=types.ReplyKeyboardRemove())
+
+
 #Социальные сети
 
 @dp.message_handler(state=EditSocials.name_soc)
 async def get_name_soc(message: types.Message, state: FSMContext):
-    available_soc_names = []
+    available_soc_names = ["cancel", "/cancel"]
     for soc in await get_all_soc():
         text = soc[1]
         available_soc_names.append(text)
@@ -227,20 +243,20 @@ async def get_name_soc(message: types.Message, state: FSMContext):
     for size in ["invite_text","url","img"]:
         keyboard.add(size)
     # Для последовательных шагов можно не указывать название состояния, обходясь next()
-    await message.answer("Теперь выберите атрибут для редактирования: \n\nПерервать ввод можно командой /cancel", reply_markup=keyboard)
+    await message.answer("Now select the attribute for editing: \n\nYou can interrupt the entry of the command /cancel", reply_markup=keyboard)
     await EditSocials.next()
 
 
 
 @dp.message_handler(state=EditSocials.atr_edit)
 async def get_atr(message: types.Message, state: FSMContext):
-    if message.text not in ["invite_text","url","img"]:
-        await message.answer("Пожалуйста, выберите атрибут, используя клавиатуру ниже.")
+    if message.text not in ["invite_text","url","img","cancel", "/cancel"]:
+        await message.answer("Please select the attribute using the keyboard below.")
         return
     await state.update_data(atr_edit=message.text)
     
     # Для последовательных шагов можно не указывать название состояния, обходясь next()
-    await message.answer("Введите новое значение атрибута: \n\nПрервать ввод /cancel", reply_markup=types.ReplyKeyboardRemove())
+    await message.answer("Enter the new attribute value: \n\nInterrupt the input /cancel", reply_markup=types.ReplyKeyboardRemove())
     await EditSocials.next()
 
 
@@ -249,13 +265,13 @@ async def get_atr(message: types.Message, state: FSMContext):
 async def get_value(message: types.Message, state: FSMContext):
     #print(1)
     if message.text in [""," ","."]:
-        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        await message.answer("Please introduce the attribute that is not an empty value of the attribute")
         return
     await state.update_data(send_value=message.text)
     data = await state.get_data()
-    await message.answer(f"Название соц сети: {data['name_soc']}\n"
-                         f"атрибут: {data['atr_edit']}\n"
-                         f"значение: {data['send_value']}\n")
+    await message.answer(f"The name of the social network: {data['name_soc']}\n"
+                         f"attribute: {data['atr_edit']}\n"
+                         f"value: {data['send_value']}\n")
     
     await edit_backup_soc_by_atr(data['name_soc'], data['atr_edit'], data['send_value'])
 
@@ -270,7 +286,7 @@ async def get_value(message: types.Message, state: FSMContext):
 async def get_value(message: types.Message, state: FSMContext):
     #print(1)
     if message.text in [""," ","."]:
-        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        await message.answer("Please introduce the attribute that is not an empty value of the attribute")
         return
     await state.update_data(send_value=message.text)
     data = await state.get_data()
@@ -286,8 +302,8 @@ async def get_value(message: types.Message, state: FSMContext):
         print(e)
 
 
-    await message.answer(f"Название соц сети: {data['name_soc']}\n"
-                         f"атрибут: {data['atr_edit']}\n"
+    await message.answer(f"The name of the social network: {data['name_soc']}\n"
+                         f"attribute: {data['atr_edit']}\n"
                          )
 
     info_soc = await get_soc_info_by_name(data['name_soc'])
@@ -305,24 +321,16 @@ class EditTexts(StatesGroup):
     atr_edit = State()
     send_value = State()
 
-@dp.message_handler(state='*', commands='cancel')
-@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
-async def cancel_handler(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state is None:
-        return
-    await state.finish()
 
-    await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
 @dp.message_handler(state=EditTexts.name_text)
 async def get_name_text(message: types.Message, state: FSMContext):
-    available_text_names = []
+    available_text_names = ["cancel", "/cancel"]
     texts = await get_all_texts()
     for text in texts:
         available_text_names.append(text[0])
     if message.text not in available_text_names:
-        await message.answer("Пожалуйста, выберите социальную сеть, используя клавиатуру ниже.")
+        await message.answer("Please select a social network using the keyboard below.")
         return
     await state.update_data(name_text=message.text)
     info_text = list(await get_current_text_by_name(message.text))
@@ -337,29 +345,29 @@ async def get_name_text(message: types.Message, state: FSMContext):
     for i in ["text","img"]:
         keyboard.add(i)
     # Для последовательных шагов можно не указывать название состояния, обходясь next()
-    await message.answer("Теперь выберите атрибут для редактирования: \n\nПерервать ввод можно командой /cancel", reply_markup=keyboard)
+    await message.answer("Now select the attribute for editing: \n\nYou can interrupt the entry of the command /cancel", reply_markup=keyboard)
     await EditTexts.next()
 
 
 @dp.message_handler(state=EditTexts.atr_edit)
 async def get_atr(message: types.Message, state: FSMContext):
-    if message.text not in ["text","img"]:
-        await message.answer("Пожалуйста, выберите атрибут, используя клавиатуру ниже.")
+    if message.text not in ["text","img","cancel", "/cancel"]:
+        await message.answer("Please select the attribute using the keyboard below.")
         return
     await state.update_data(atr_edit=message.text)
-    await message.answer("Введите новое значение атрибута: \n\nПрервать ввод /cancel", reply_markup=types.ReplyKeyboardRemove())
+    await message.answer("Enter the new attribute value: \n\nInterrupt the input /cancel", reply_markup=types.ReplyKeyboardRemove())
     await EditTexts.next()
 
 @dp.message_handler(state=EditTexts.send_value)
 async def get_value(message: types.Message, state: FSMContext):
     if message.text in [""," ","."]:
-        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        await message.answer("Please introduce the attribute that is not an empty value of the attribute")
         return
     await state.update_data(send_value=message.text)
     data = await state.get_data()
-    await message.answer(f"Название текста: {data['name_text']}\n"
-                         f"атрибут: {data['atr_edit']}\n"
-                         f"значение: {data['send_value']}\n")
+    await message.answer(f"Name of the text: {data['name_text']}\n"
+                         f"attribute: {data['atr_edit']}\n"
+                         f"value: {data['send_value']}\n")
     await edit_text_by_atr(data['name_text'], data['atr_edit'], data['send_value'])
 
     info_text = list(await get_current_text_by_name(data['name_text']))
@@ -375,7 +383,7 @@ async def get_value(message: types.Message, state: FSMContext):
 @dp.message_handler(state=EditTexts.send_value, content_types=['photo'])
 async def get_value(message: types.Message, state: FSMContext):
     if message.text in [""," ","."]:
-        await message.answer("Пожалуйста, введите не пустой значение атрибута")
+        await message.answer("Please introduce the attribute that is not an empty value of the attribute")
         return
     await state.update_data(send_value=message.text)
     data = await state.get_data()
@@ -526,9 +534,9 @@ async def send_message(msg: types.Message):
         chat_id =  msg["chat"]["id"]
         name = str(msg["from"]["first_name"]) + " " + str(msg["from"]["last_name"])
         username = str(msg["from"]["username"])
-        if int(chat_id) == CHAT_ID:
+        if int(chat_id) == int(CHAT_ID):
             await count_mess_user(user_id, name, username)
-            print("Подсчитать")
+            print("Calculate mess")
 
             if "reply_to_message" in msg:
                 user_reply_id = msg["from"]["id"]
@@ -542,6 +550,10 @@ async def send_message(msg: types.Message):
                     print( msg["reply_to_message"])
                 else:
                     print("user reply ur own message")
+        else:
+            print("We do not count:")
+            print("int(chat_id) = ",int(chat_id))
+            print("CHAT_ID = ", CHAT_ID)
 
         print("NON COMMAND MSG supergroup: ", msg)
 

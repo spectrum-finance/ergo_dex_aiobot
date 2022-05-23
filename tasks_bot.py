@@ -84,10 +84,11 @@ async def join_soc_chat():
     print(all_current)
     text_soc = ""
     for soc in all_current:
-        text_soc += link(soc[2], soc[3]) +"\n"
+        #text_soc += link(soc[2], soc[3]) +"\n"
+        text_soc += f'<a href="{soc[3]}">{soc[2]}</a>'  +"\n"
         #text_soc += soc[2]+"  " +soc[3]+"\n"
     common_text = text + "\n\n" + text_soc
-    bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True, parse_mode="Markdown" )
+    bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True, parse_mode="HTML" )
 
 
 async def join_soc_chat_image():
@@ -182,7 +183,7 @@ async def most_active_user():
     is_admin = user[4]
     user_mess_count = user[5]
     reputation = user[6]
-    mess = f"Самый активный пользователь в чате:  {name} @{username} \n   \n Кол-во сообщений: {user_mess_count}"
+    mess = f"The most active user in chat:  {name} @{username} \n   \n Number of messages: {user_mess_count}"
     bot_sync.send_message(CHAT_ID, mess )
 
 async def metrics_chat():
@@ -211,6 +212,9 @@ async def scheduler():
     aioschedule.every().wednesday.at("20:00").do(join)
     aioschedule.every().friday.at("20:00").do(join)
     aioschedule.every().sunday.at("20:00").do(join)
+    ## test
+    #aioschedule.every().minute.do(join)
+    ##
     aioschedule.every().day.at("22:00").do(warning)
     #aioschedule.every().day.at("02:24").do(most_active_user)
     #aioschedule.every().day.at("02:24").do(metrics_chat)
