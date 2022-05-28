@@ -215,7 +215,7 @@ async def scheduler():
     ## test
     #aioschedule.every().minute.do(join)
     ##
-    aioschedule.every().day.at("22:00").do(warning)
+    aioschedule.every().day.at("01:00").do(warning)
     #aioschedule.every().day.at("02:24").do(most_active_user)
     #aioschedule.every().day.at("02:24").do(metrics_chat)
     

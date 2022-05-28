@@ -366,12 +366,14 @@ async def init_database(db_name):
             time_edit timestamp not null
         )''')
         await db.execute('''CREATE TABLE metrics (
-            id integer primary key autoincrement not null,
-            tvl varchar(510),
-            total_volume varchar(510) ,
-            transactions varchar(510),
-            max_transactions_volume varchar(510),
-            wallets_count varchar(510)
+            id integer primary key autoincrement not null ,
+            TV real not null  ,
+            avgTxValue_swap real not null ,
+            avgTxValue_deposits real not null  ,
+            maxTxValue_swap real not null  ,
+            maxTxValue_deposits real not null  ,
+            numTxs_swap integer not null  ,
+            numTxs_deposits  integer not null  
         )''')
         await db.execute('''CREATE TABLE users (
             id integer primary key autoincrement not null,
@@ -398,7 +400,47 @@ async def init_database(db_name):
 def get_database_connection(user_id):
     return aiosqlite.connect(database_path(user_id))
 
+async def add_metric_db():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        await db.execute('''DROP TABLE metrics ''')
+        await db.execute('''CREATE TABLE metrics (
+            id integer primary key autoincrement not null ,
+            TV real not null  ,
+            avgTxValue_swap real not null ,
+            avgTxValue_deposits real not null  ,
+            maxTxValue_swap real not null  ,
+            maxTxValue_deposits real not null  ,
+            numTxs_swap integer not null  ,
+            numTxs_deposits  integer not null  
+        )''')
+        await db.execute(f'''INSERT INTO metrics VALUES
+            (1, 247784.23, 900.18, 450750.61, 86148.73, 6301989.74, 1849, 141)
+        ''')
+        await db.commit()
+
+async def get_records_metrics():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+            info = await db.execute(f''' PRAGMA table_info( metrics ); ''')
+            info = list(map(lambda x:x[1],await info.fetchall()))[1:]
+
+            res = await db.execute(f''' SELECT * FROM metrics ''')
+            res = list(await res.fetchone())[1:]
+            
+            return dict(zip(info,res))
+
+#Обновить рекорды - на вход идёт словарь из новых значений
+async def change_metrics_record(dict_params):
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        for key in dict_params:
+            await db.execute(f"UPDATE metrics SET {key} = {dict_params[key]} WHERE id = 1")
+
+        await db.commit()
+
+    
+
 if __name__ == "__main__":
+    #print(asyncio.run(get_records_metrics()))
+    asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
     #asyncio.run(init_database(db_name))
     #asyncio.run(make_admin(196887301))
     #asyncio.run(insertBLOBsoc("Twitter", "test_23_22_21.jpg"))
