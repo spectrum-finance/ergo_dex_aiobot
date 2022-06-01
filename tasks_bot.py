@@ -208,14 +208,14 @@ Total Volume %: {2}
 
 async def scheduler():
     #aioschedule.every().day.at("9:14").do(join) # через день в 18:00 ТОЛЬКО ЭТО
-    aioschedule.every().monday.at("20:00").do(join)
-    aioschedule.every().wednesday.at("20:00").do(join)
-    aioschedule.every().friday.at("20:00").do(join)
-    aioschedule.every().sunday.at("20:00").do(join)
+    aioschedule.every().monday.at("18:00").do(join)
+    aioschedule.every().wednesday.at("18:00").do(join)
+    aioschedule.every().friday.at("18:00").do(join)
+    aioschedule.every().sunday.at("18:00").do(join)
     ## test
     #aioschedule.every().minute.do(join)
     ##
-    aioschedule.every().day.at("01:00").do(warning)
+    aioschedule.every().day.at("23:00").do(warning)
     #aioschedule.every().day.at("02:24").do(most_active_user)
     #aioschedule.every().day.at("02:24").do(metrics_chat)
     
