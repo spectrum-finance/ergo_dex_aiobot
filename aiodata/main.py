@@ -360,7 +360,7 @@ async def init_database(db_name):
         )''')
         await db.execute('''CREATE TABLE text (
             id integer primary key autoincrement not null,
-            text varchar(1023),
+            text varchar(1063),
             name varchar(200) ,
             img blob,
             time_edit timestamp not null
