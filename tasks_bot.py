@@ -23,6 +23,12 @@ CHAT_ID= -1001721723642
 
 bot_sync = telebot.TeleBot(token=TOKEN_BOT)
 
+@bot_sync.message_handler(func=lambda m: True)
+def echo_all(message):
+    print(message)
+    print(message.text)
+	#bot.reply_to(message, message.text)
+
 def get_markets1():
     Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24)
     res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}".format(int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
@@ -165,7 +171,42 @@ def join_soc():
             asyncio.set_event_loop(loop)
             asyncio.run(join_soc_chat())
 
+async def rewarding_users():
+    #bot_sync.send_message( CHAT_ID, common_text, disable_web_page_preview=True, parse_mode="HTML" )       
+    # TODO
+    # Сделать функцию рассылки админам информации
+    # Проверить баланс бота, если не хватает для вознаграждения, попросить пополнить
+    # Функция get_top_3_users()
+    # Отсеить тех, у кого счёт 0
+    # Функция, сообщающая о выигрыше, предупреждающая, что счёт пополнится в течение 2-х минут.
+    # В админке есть доступ к балансу бота, сумме вознаграждений !3-ёх победителей.
+    # Функция вознаграждаения пользователей. Работает с tipper-bot. На вход получает CHAT_ID, список словарей [USERS_ID: count,] 
+    # После вознаграждения обновляет значение баланса, если вновь не хватает, уведомляет о нехватке
 
+
+    # `1` тестируем общение между ботами
+    # --> ругается, когда с двух устройств используется один токен
+    # aiogram.utils.exceptions.TerminatedByOtherGetUpdates: Terminated by other getupdates request; make sure that only one bot instance is running
+    print("DONE")
+    bot_sync.send_message( CHAT_ID, r"/t id=@ergodex_community, 1335565003, 1 kushti test" )
+
+
+
+
+    pass
+
+async def send_mess_admins(text):
+    admins = await admins_list()
+    for admin in admins:
+        try:
+            print(admin)
+            admin_id = admin[1]
+            bot_sync.send_message( admin_id, text )
+        except telebot.apihelper.ApiTelegramException:
+            print("Telegram API was unsuccessful for admin:", admin )
+        except Exception:
+            pass
+    pass
 
 
 
@@ -174,6 +215,9 @@ async def warning():
 
 async def join():
     await join_soc_chat()
+
+async def reward():
+    await rewarding_users()
 
 async def most_active_user():
     user = await get_most_active_user()
@@ -215,9 +259,15 @@ async def scheduler():
     ## test
     ## aioschedule.every().minute.do(join)
     ##
-    aioschedule.every().day.at("21:00").do(warning)
+    aioschedule.every().day.at("17:00").do(warning)
+    #aioschedule.every().minute.do(send_mess_admins("Тестовая рассылка админам"))
+
     ## aioschedule.every().day.at("02:24").do(most_active_user)
     ## aioschedule.every().day.at("02:24").do(metrics_chat)
+
+    ## TODO
+    ## Вознаграждение каждое воскресенье в 18:00
+    ## 
     
     while True:
         await aioschedule.run_pending()
@@ -226,3 +276,8 @@ async def scheduler():
 async def on_startup(_):
     bot_sync = telebot.TeleBot(token=TOKEN_BOT)
     asyncio.create_task(scheduler())
+
+
+if __name__ == "__main__":
+    asyncio.run(send_mess_admins("Тестовая рассылка сообщений админам #2"))
+    

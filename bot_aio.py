@@ -510,7 +510,7 @@ async def send_warning_chat():
 async def send_message(msg: types.Message):
     chat_type =  msg["chat"]["type"]
     user_id = msg.from_user.id
-
+    print(msg)
     if chat_type == "private":
         pass
         # if "add_atr" in msg.text and await is_admin(user_id):
@@ -534,6 +534,7 @@ async def send_message(msg: types.Message):
         chat_id =  msg["chat"]["id"]
         name = str(msg["from"]["first_name"]) + " " + str(msg["from"]["last_name"])
         username = str(msg["from"]["username"])
+
         if int(chat_id) == int(CHAT_ID):
             await count_mess_user(user_id, name, username)
             print("Calculate mess")

@@ -4,3 +4,4 @@ bot.py
 tasks.py
 bot.py
 aiodata/data.sqlite
+*.pyc

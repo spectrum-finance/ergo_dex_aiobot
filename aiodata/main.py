@@ -31,6 +31,15 @@ async def is_admin(tg_id, db_name=db_name):
                 return 0
             return res[0]
 
+async def admins_list(db_name=db_name):
+    if database_exists(db_name):
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            res = await db.execute(f'''SELECT * FROM users WHERE is_admin = 1''')
+            res = await res.fetchall()
+            if res == None:
+                return 0
+            return res
+
 async def add_user(db_name, tg_id, name, username, is_admin = 0):
     if database_exists(db_name):
         #print(1)
@@ -439,8 +448,9 @@ async def change_metrics_record(dict_params):
     
 
 if __name__ == "__main__":
+    print(asyncio.run(admins_list()))
     #print(asyncio.run(get_records_metrics()))
-    asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
+    #asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
     #asyncio.run(init_database(db_name))
     #asyncio.run(make_admin(196887301))
     #asyncio.run(insertBLOBsoc("Twitter", "test_23_22_21.jpg"))
