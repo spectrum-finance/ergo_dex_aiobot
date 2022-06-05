@@ -10,8 +10,7 @@ import datetime, time
 from PIL import Image
 from aiogram.utils.markdown import link
 
-LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-print("LOCAL_TIME ",datetime.datetime.now())
+
 print("\n v0.1.0")
 
 
@@ -259,7 +258,7 @@ async def scheduler():
     ## test
     ## aioschedule.every().minute.do(join)
     ##
-    aioschedule.every().day.at("17:00").do(warning)
+    aioschedule.every().day.at("21:00").do(warning)
     #aioschedule.every().minute.do(send_mess_admins("Тестовая рассылка админам"))
 
     ## aioschedule.every().day.at("02:24").do(most_active_user)
