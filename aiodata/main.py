@@ -427,6 +427,19 @@ async def add_metric_db():
         ''')
         await db.commit()
 
+async def add_tip_amount_table():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        await db.execute('''DROP TABLE tip_amount ''')
+        await db.execute('''CREATE TABLE tip_amount (
+            first real not null,
+            second real not null,
+            thierd real not null
+        )''')
+        await db.execute(f'''INSERT INTO tip_amount VALUES
+            (0, 0, 0)
+        ''')
+        await db.commit()
+
 async def get_records_metrics():
     async with aiosqlite.connect(database_path(db_name)) as db:
             info = await db.execute(f''' PRAGMA table_info( metrics ); ''')
@@ -445,10 +458,18 @@ async def change_metrics_record(dict_params):
 
         await db.commit()
 
+async def get_top_3_users( db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            res = await db.execute(f'''SELECT * FROM users ORDER BY chat_count_mess DESC''')
+            res = await res.fetchmany(3) 
+            return res
+
     
 
 if __name__ == "__main__":
-    print(asyncio.run(admins_list()))
+    print(asyncio.run(add_tip_amount_table()))
     #print(asyncio.run(get_records_metrics()))
     #asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
     #asyncio.run(init_database(db_name))

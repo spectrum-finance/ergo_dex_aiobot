@@ -4,7 +4,7 @@ import asyncio
 
 
 admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-admin_buttons = ["Social media","Texts","Main menu"]
+admin_buttons = ["Social media","Texts","Tipping","Main menu"]
 admin_keyboard.add(*admin_buttons)
 
 async def get_social_admin_keyboard():

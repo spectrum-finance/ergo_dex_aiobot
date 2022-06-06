@@ -251,14 +251,14 @@ Total Volume %: {2}
 
 async def scheduler():
     ## aioschedule.every().day.at("9:14").do(join) # через день в 18:00 ТОЛЬКО ЭТО
-    aioschedule.every().monday.at("16:00").do(join)
-    aioschedule.every().wednesday.at("16:00").do(join)
-    aioschedule.every().friday.at("16:00").do(join)
-    aioschedule.every().sunday.at("16:00").do(join)
+    aioschedule.every().monday.at("18:00").do(join)
+    aioschedule.every().wednesday.at("18:00").do(join)
+    aioschedule.every().friday.at("18:00").do(join)
+    aioschedule.every().sunday.at("18:00").do(join)
     ## test
     ## aioschedule.every().minute.do(join)
     ##
-    aioschedule.every().day.at("21:00").do(warning)
+    aioschedule.every().day.at("23:00").do(warning)
     #aioschedule.every().minute.do(send_mess_admins("Тестовая рассылка админам"))
 
     ## aioschedule.every().day.at("02:24").do(most_active_user)
@@ -278,5 +278,7 @@ async def on_startup(_):
 
 
 if __name__ == "__main__":
-    asyncio.run(send_mess_admins("Тестовая рассылка сообщений админам #2"))
+    #asyncio.run(send_mess_admins("Тестовая рассылка сообщений админам #2"))
+    print(asyncio.run(get_top_3_users()))
+    pass
     
