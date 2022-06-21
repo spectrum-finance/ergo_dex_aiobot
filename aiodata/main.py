@@ -96,6 +96,11 @@ async def make_admin(tg_id, db_name=db_name):
             await db.execute(f'''UPDATE users SET is_admin = 1 WHERE tg_id = {tg_id}''')
             await db.commit()
 
+async def reload_users_stats(db_name=db_name):
+    async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''UPDATE users SET chat_count_mess = 0''')
+            await db.commit()
+
 ##################################################
 ##############   SOCIALS INFO    #################
 ##################################################
@@ -376,13 +381,12 @@ async def init_database(db_name):
         )''')
         await db.execute('''CREATE TABLE metrics (
             id integer primary key autoincrement not null ,
-            TV real not null  ,
-            avgTxValue_swap real not null ,
-            avgTxValue_deposits real not null  ,
-            maxTxValue_swap real not null  ,
-            maxTxValue_deposits real not null  ,
-            numTxs_swap integer not null  ,
-            numTxs_deposits  integer not null  
+            TVL real not null  ,
+            Total_Volume real not null ,
+            Max_transaction_value real not null  ,
+            Max_deposit_value real not null  ,
+            Transactions integer not null  ,
+            Deposits  integer not null
         )''')
         await db.execute('''CREATE TABLE users (
             id integer primary key autoincrement not null,
@@ -414,18 +418,24 @@ async def add_metric_db():
         await db.execute('''DROP TABLE metrics ''')
         await db.execute('''CREATE TABLE metrics (
             id integer primary key autoincrement not null ,
-            TV real not null  ,
-            avgTxValue_swap real not null ,
-            avgTxValue_deposits real not null  ,
-            maxTxValue_swap real not null  ,
-            maxTxValue_deposits real not null  ,
-            numTxs_swap integer not null  ,
-            numTxs_deposits  integer not null  
+            TVL real not null  ,
+            Total_Volume real not null ,
+            Max_transaction_value real not null  ,
+            Max_deposit_value real not null  ,
+            Transactions integer not null  ,
+            Deposits  integer not null  
         )''')
         await db.execute(f'''INSERT INTO metrics VALUES
-            (1, 247784.23, 900.18, 450750.61, 86148.73, 6301989.74, 1849, 141)
+            ( 1, 1175944.93, 9350582.96, 72584.89, 337.71, 38501, 4805 )
         ''')
         await db.commit()
+
+async def get_tip_amount_values():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        res = await db.execute(f''' SELECT * FROM tip_amount ''')
+        res = list(await res.fetchone())
+        return res        
+        #return dict(zip(info,res))
 
 async def add_tip_amount_table():
     async with aiosqlite.connect(database_path(db_name)) as db:
@@ -438,6 +448,20 @@ async def add_tip_amount_table():
         await db.execute(f'''INSERT INTO tip_amount VALUES
             (0, 0, 0)
         ''')
+        await db.commit()
+
+async def change_tips(place, value):
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        if place == 1:
+            await db.execute(f"""UPDATE tip_amount SET first = {value} """)
+            pass
+        if place == 2:
+            await db.execute(f"""UPDATE tip_amount SET second = {value} """)
+            pass
+        if place == 3:
+            await db.execute(f"""UPDATE tip_amount SET thierd = {value} """)
+            pass
+
         await db.commit()
 
 async def get_records_metrics():
@@ -469,7 +493,9 @@ async def get_top_3_users( db_name=db_name):
     
 
 if __name__ == "__main__":
-    print(asyncio.run(add_tip_amount_table()))
+    #print(asyncio.run(change_tips(1, 0.3)))
+    asyncio.run(add_metric_db())
+    #asyncio.run(get_tip_amount_values())
     #print(asyncio.run(get_records_metrics()))
     #asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
     #asyncio.run(init_database(db_name))

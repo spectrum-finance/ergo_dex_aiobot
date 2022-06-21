@@ -7,6 +7,14 @@ admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 admin_buttons = ["Social media","Texts","Tipping","Main menu"]
 admin_keyboard.add(*admin_buttons)
 
+winner_numbers_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+winner_numbers = ["first","second", "third"]
+winner_numbers_keyboard.add(*winner_numbers)
+
+tipping_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+tipping_buttons = ["Change tip amount"]
+tipping_keyboard.add(*tipping_buttons)
+
 async def get_social_admin_keyboard():
     social_admin_keyboard = ReplyKeyboardMarkup(
             resize_keyboard=True
@@ -20,6 +28,8 @@ async def get_social_admin_keyboard():
         #print(text)
         social_admin_keyboard.add(text)
     return social_admin_keyboard
+
+
 
 async def get_text_admin_keyboard():
     text_admin_keyboard = ReplyKeyboardMarkup(

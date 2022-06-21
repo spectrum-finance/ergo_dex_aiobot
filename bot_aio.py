@@ -38,7 +38,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
 
-from tasks_bot import on_startup
+from tasks_bot import on_startup, get_tipper_balance
 
 
 load_dotenv()
@@ -53,6 +53,8 @@ CHAT_ID = os.getenv('CHAT_ID')
 # Объект бота
 bot_sync = telebot.TeleBot(token=TOKEN_BOT)
 bot = Bot(token=TOKEN_BOT)
+# Разрешаем получение обновлений из каналов
+#bot.get_updates(allowed_updates=["channel_post"])
 # Диспетчер для бота
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
@@ -165,6 +167,30 @@ async def cmd_admin2(message: types.Message):
     elif message.chat.type == 'supergroup':
         await message.reply("This command allow just in private")
 
+
+@dp.message_handler(Text(equals="Tipping"))
+async def admin_soc(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            #await message.reply("Привет админ")
+            #socials = await get_all_soc()
+            await message.answer('''uno momento...''')
+            balance = float(await get_tipper_balance())
+            list_tip = await get_tip_amount_values()
+            required_balance = float(sum(list_tip))
+            await message.answer(f'''bot ERG balance: {balance}\n\nRewards for:
+\nfirst       | {list_tip[0]} \tERG
+second | {list_tip[1]} \tERG
+third      | {list_tip[2]} \tERG
+
+ \n admin panel - /admin
+''',
+ reply_markup=  ReplyKeyboards.tipping_keyboard)
+            
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
+
 @dp.message_handler(state='*', commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -183,6 +209,86 @@ class EditSocials(StatesGroup):
     name_soc = State()
     atr_edit = State()
     send_value = State()
+
+class ChangeTips(StatesGroup):
+    number = State()
+    value = State()
+
+
+@dp.message_handler(Text(equals="Change tip amount"))
+async def admin_soc(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            #await message.reply("Привет админ")
+            #socials = await get_all_soc()
+            
+            await message.answer('Select the number of the winner whose reward you would like to change: \n /cancel for return \n admin panel - /admin', reply_markup= ReplyKeyboards.winner_numbers_keyboard)
+            await ChangeTips.number.set()
+            
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
+
+@dp.message_handler(state=ChangeTips.number)
+async def get_name_soc(message: types.Message, state: FSMContext):
+    available_text = ["cancel", "/cancel", "first","second", "third"]
+
+    if message.text not in available_text:
+        await message.answer("Please select an item from the panel")
+        return
+    await state.update_data(number=message.text)
+
+    # Для последовательных шагов можно не указывать название состояния, обходясь next()
+    await message.answer("Now input float(or int) number \n\nYou can interrupt the entry of the command /cancel \n admin panel - /admin",  reply_markup=types.ReplyKeyboardRemove())
+    await ChangeTips.next()
+
+@dp.message_handler(state=ChangeTips.value)
+async def get_name_soc(message: types.Message, state: FSMContext):
+    available_soc_names = ["cancel", "/cancel", "first","second", "third"]
+
+    is_correct = False
+    try:
+        value = float(message.text)
+        is_correct = True
+    except Exception:
+        if message.text in ["cancel", "/cancel"]:
+            is_correct = True
+
+    if not is_correct:
+        await message.answer("Please select an item from the panel", reply_markup=types.ReplyKeyboardRemove())
+        return
+    await state.update_data(value=message.text)
+
+    # Для последовательных шагов можно не указывать название состояния, обходясь next()
+    await message.answer("momento...", reply_markup=types.ReplyKeyboardRemove())
+
+    #######
+    #######
+    #######
+    data = await state.get_data()
+    place = 0
+    await message.answer(f"Place: {data['number']}\n"
+                         f"Gift: {data['value']}\n")
+    if data['number'] == "first":
+        place = 1
+    elif data['number'] == "second":
+        place = 2
+    elif data['number'] == "third":
+        place = 3
+
+    
+    await change_tips(place, float(data['value']))
+    #await edit_backup_soc_by_atr(data['name_soc'], data['atr_edit'], data['send_value'])
+
+    values = await get_tip_amount_values()
+    await message.answer(f'''Check ur data now:\n
+first     : {values[0]}
+second:  {values[1]}
+third     :{values[2]}
+    
+admin panel - /admin''')
+    
+    await state.finish()
 
 
 @dp.message_handler(Text(equals="Social media"))
@@ -220,6 +326,9 @@ async def admin_text(message: types.Message):
 
 
 #Социальные сети
+
+
+
 
 @dp.message_handler(state=EditSocials.name_soc)
 async def get_name_soc(message: types.Message, state: FSMContext):
@@ -510,7 +619,7 @@ async def send_warning_chat():
 async def send_message(msg: types.Message):
     chat_type =  msg["chat"]["type"]
     user_id = msg.from_user.id
-    print(msg)
+    #print(msg)
     if chat_type == "private":
         pass
         # if "add_atr" in msg.text and await is_admin(user_id):
