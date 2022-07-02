@@ -599,10 +599,10 @@ async def scheduler():
     aioschedule.every().sunday.at("20:10").do(calculate_the_lack_of_funds)
     ## Вывод рекордов
     # aioschedule.every().minute.do(record_metrics_update)
-    aioschedule.every().day.at("23:00").do(record_metrics_update)
+    aioschedule.every(10).minutes.do(record_metrics_update)
     ## Вывод статистики
     #aioschedule.every().minute.do(showStats)
-    aioschedule.every().sunday.at("20:00").do(showStats)
+    aioschedule.every().sunday.at("17:00").do(showStats)
 
     ##
     
