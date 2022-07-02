@@ -5,6 +5,5 @@ tasks.py
 bot.py
 aiodata/data.sqlite
 *.pyc
-*.session*
 __pycache__
 */*.cpython*

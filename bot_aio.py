@@ -38,7 +38,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
 
-from tasks_bot import on_startup, get_tipper_balance
+from tasks_bot import on_startup, get_tipper_balance, create_session_client
 
 
 load_dotenv()
@@ -53,6 +53,10 @@ CHAT_ID = os.getenv('CHAT_ID')
 # Объект бота
 bot_sync = telebot.TeleBot(token=TOKEN_BOT)
 bot = Bot(token=TOKEN_BOT)
+
+# Создаём сессию клиентского бота 
+#asyncio.run(create_session_client())
+
 # Разрешаем получение обновлений из каналов
 #bot.get_updates(allowed_updates=["channel_post"])
 # Диспетчер для бота
@@ -255,7 +259,7 @@ async def get_name_soc(message: types.Message, state: FSMContext):
             is_correct = True
 
     if not is_correct:
-        await message.answer("Please select an item from the panel", reply_markup=types.ReplyKeyboardRemove())
+        await message.answer("Please input float(or int) number \n\nYou can interrupt the entry of the command /cancel \n admin panel - /admin", reply_markup=types.ReplyKeyboardRemove())
         return
     await state.update_data(value=message.text)
 

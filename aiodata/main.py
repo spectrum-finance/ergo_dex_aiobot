@@ -494,17 +494,17 @@ async def get_top_3_users( db_name=db_name):
 
 if __name__ == "__main__":
     #print(asyncio.run(change_tips(1, 0.3)))
-    asyncio.run(add_metric_db())
+    #asyncio.run(add_metric_db())
     #asyncio.run(get_tip_amount_values())
     #print(asyncio.run(get_records_metrics()))
     #asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
     #asyncio.run(init_database(db_name))
-    #asyncio.run(make_admin(196887301))
+    #asyncio.run(make_admin(5374762535))
     #asyncio.run(insertBLOBsoc("Twitter", "test_23_22_21.jpg"))
     #print(asyncio.run(get_all_texts()))
     #blob_data = asyncio.run(get_current_text_by_name("warning"))[3]
     #convert_data(blob_data, "image.jpg")
-    #asyncio.run(add_user(db_name, tg_id=670354986, is_admin = 1))
+    #asyncio.run(add_user(db_name, tg_id=5518072378, is_admin = 1))
     #print(asyncio.run(get_soc_info_by_name(name="Twitter")))
     #asyncio.run(add_first_backup_soc_by_name_soc("Telegram"))
     #asyncio.run(add_wait_content_from(2534767278,"img soc Discord"))

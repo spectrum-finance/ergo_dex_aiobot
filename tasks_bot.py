@@ -31,7 +31,9 @@ ergo_bot_id = 5061420716
 
 bot_sync = telebot.TeleBot(token=TOKEN_BOT)
 
-client = TelegramClient('session2', api_id, api_hash)
+client = TelegramClient('session', api_id, api_hash)
+client.start()
+
 
 RECORD_TODAY = False
 
@@ -116,13 +118,12 @@ def checkRecord():
                                        'Deposits'
                                       ])
     
-    isChanged = False
     list_records = []
     for index, value in enumerate(current_values.iloc[0].tolist()):
         if records.iloc[0, index] < value:
             records.iloc[0, index] = value
             list_records.append(str(list(records.columns)[index]) + ': ' + str(value))
-            isChanged = True
+            RECORD_TODAY = True
             
     printstr = '%s \n%s' % (', '.join(list_records[:-1]), str(list_records[-1]))
     print("Record metrics: \n%s" % printstr)
@@ -276,11 +277,15 @@ Or change the amount of the contest participants' remuneration in the bot settin
 
 
 async def get_tipper_balance():
+    print('into get_tipper!')
     status = "?"
-    await client.start()
+    #await client.start()
     for tries in range(10):
         try:
-            await client.send_message("ErgoTipperBot", "/balance")
+            name = "ErgoTipperBot"
+            entity = await client.get_entity(name)
+            #await client.send_message("ErgoTipperBot", "/balance")
+            await client.send_message(entity=entity,message="/balance")
             await asyncio.sleep(4)
             messages = await client.get_messages("ErgoTipperBot")
             last_mess = str(messages[0].text)
@@ -308,6 +313,9 @@ async def get_tipper_balance():
                     await client.send_message("ErgoTipperBot", "/balance")
             else:
                 pass
+
+async def create_session_client():
+    await client.start()
 
 async def rewarding_users():
     top = await get_top_3_users()
@@ -462,6 +470,9 @@ Deposits: {6}
 
     bot_sync.send_message(CHAT_ID, mess)
 
+async def spam():
+    await client.send_message("Test_bot_analyze", "mess")
+
 async def record_metrics_update():
     global RECORD_TODAY
     records_history = await get_records_metrics()
@@ -600,6 +611,10 @@ async def scheduler():
     ## Вывод рекордов
     # aioschedule.every().minute.do(record_metrics_update)
     aioschedule.every(10).minutes.do(record_metrics_update)
+
+    #  спам
+    #aioschedule.every().second.do(spam)
+
     ## Вывод статистики
     #aioschedule.every().minute.do(showStats)
     aioschedule.every().sunday.at("17:00").do(showStats)
@@ -626,6 +641,6 @@ async def on_startup(_):
 
 if __name__ == "__main__":
     #asyncio.run(send_mess_admins("Тестовая рассылка сообщений админам #2"))
-    print(asyncio.run(get_top_3_users()))
+    print(asyncio.run(rewarding_users()))
     pass
     
