@@ -590,7 +590,7 @@ Total Volume %: {2}
 async def scheduler():
     ## aioschedule.every().day.at("9:14").do(join) # через день в 18:00 ТОЛЬКО ЭТО
     # нужно для того чтобы выводило максимум один рекорд в день
-    aioschedule.every().day.at("00:00").do(reload_record_boolean)
+    aioschedule.every().day.at("23:01").do(reload_record_boolean)
 
     aioschedule.every().monday.at("18:00").do(join)
     aioschedule.every().wednesday.at("18:00").do(join)
