@@ -58,7 +58,18 @@ def get_markets2():
     Ago48DateTime = Ago24DateTime - datetime.timedelta(hours = 24)
     res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
-    return res
+    for tries in range(9):    
+        try: 
+            if int(res['volume']['value'])>0:
+                return res
+            else:
+                res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+        except Exception:
+            print(res)
+            res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+
 
 def get_markets_swap():
     Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24)
@@ -618,6 +629,7 @@ async def scheduler():
     ## Вывод статистики
     #aioschedule.every().minute.do(showStats)
     aioschedule.every().sunday.at("17:00").do(showStats)
+    #aioschedule.every(10).seconds.do(showStats)
 
     ##
     
