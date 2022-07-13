@@ -8,7 +8,7 @@ Python 3.9.12<br />
   python bot_aio.py <br />
   
 Change CHAT_ID in the bot_aio.py file to group id
-
+____
 v0.1.0 (only join socials)
 #**get started:**<br />
 Python 3.9.12<br />
@@ -16,7 +16,7 @@ Python 3.9.12<br />
   create .env; add TOKEN_BOT(or use my) add CHAT_ID <br />
   python bot_aio.py <br />
   
-----
+____
 v1.0.0
 
 Python 3.9.12<br />
