@@ -12,7 +12,7 @@ winner_numbers = ["first","second", "third"]
 winner_numbers_keyboard.add(*winner_numbers)
 
 tipping_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-tipping_buttons = ["Change tip amount"]
+tipping_buttons = ["Change tip amount","Top up your balance"]
 tipping_keyboard.add(*tipping_buttons)
 
 async def get_social_admin_keyboard():

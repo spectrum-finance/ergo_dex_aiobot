@@ -1,3 +1,4 @@
+from http import client
 import logging, os
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -38,7 +39,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
 
-from tasks_bot import on_startup, get_tipper_balance, create_session_client
+from tasks_bot import on_startup, get_tipper_balance, create_session_client, get_tipper_wallet,  get_client_id
 
 
 load_dotenv()
@@ -228,6 +229,20 @@ async def admin_soc(message: types.Message):
             
             await message.answer('Select the number of the winner whose reward you would like to change: \n /cancel for return \n admin panel - /admin', reply_markup= ReplyKeyboards.winner_numbers_keyboard)
             await ChangeTips.number.set()
+            
+        else:
+            print(message.chat.id)
+            await message.reply("Ты не админ")
+
+@dp.message_handler(Text(equals="Top up your balance"))
+async def admin_soc(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            #await message.reply("Привет админ")
+            #socials = await get_all_soc()
+            wallet = await get_tipper_wallet()
+            client_id = await get_client_id()
+            await message.answer(f'Yout wallet address is \n {wallet}  \n\n You can top up your balance through your wallet or through the command\n\n \\t id=@ergodex_community,{client_id} 1 kushti test  \n\n /cancel for return \n admin panel - /admin', reply_markup=types.ReplyKeyboardRemove())
             
         else:
             print(message.chat.id)

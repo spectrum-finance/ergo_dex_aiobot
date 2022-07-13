@@ -7,3 +7,5 @@ aiodata/data.sqlite
 *.pyc
 __pycache__
 */*.cpython*
+*session*
+session*

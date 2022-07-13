@@ -430,6 +430,32 @@ async def add_metric_db():
         ''')
         await db.commit()
 
+async def add_or_reload_params_db():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        await db.execute('''DROP TABLE params ''')
+        await db.execute('''CREATE TABLE params (
+            id integer primary key autoincrement not null ,
+            TVL_sunday real not null  
+        )''')
+        await db.execute(f'''INSERT INTO params VALUES
+            ( 1, 1570737.59)
+        ''')
+        await db.commit()
+
+async def get_TVL_sunday():
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        res = await db.execute(f''' SELECT * FROM params ''')
+        res = list(await res.fetchone())
+        #print(res[1])
+        return res[1]  
+
+async def update_TVL_sunday(value):
+    async with aiosqlite.connect(database_path(db_name)) as db:
+        await db.execute(f"""UPDATE params SET TVL_sunday = {value} """)
+        await db.commit()
+
+
+
 async def get_tip_amount_values():
     async with aiosqlite.connect(database_path(db_name)) as db:
         res = await db.execute(f''' SELECT * FROM tip_amount ''')
@@ -493,11 +519,12 @@ async def get_top_3_users( db_name=db_name):
     
 
 if __name__ == "__main__":
+    asyncio.run(update_TVL_sunday(1600417.49))
     #print(asyncio.run(change_tips(1, 0.3)))
     #asyncio.run(add_metric_db())
     #asyncio.run(get_tip_amount_values())
     #print(asyncio.run(get_records_metrics()))
-    #asyncio.run(change_metrics_record({'TV': 247784.22, 'avgTxValue_swap': 900.17}))
+    #asyncio.run(change_metrics_record({'Transactions': 1084.22}))
     #asyncio.run(init_database(db_name))
     #asyncio.run(make_admin(5374762535))
     #asyncio.run(insertBLOBsoc("Twitter", "test_23_22_21.jpg"))

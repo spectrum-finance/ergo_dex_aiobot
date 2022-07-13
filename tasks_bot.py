@@ -1,5 +1,5 @@
 import telebot
-import aioschedule
+import aioschedule 
 from dotenv import load_dotenv
 import asyncio
 from aiodata.main import *
@@ -13,9 +13,13 @@ from telethon import TelegramClient, events
 import json
 from tqdm import tqdm
 
-
 print("\n v0.1.0")
+#253476728
 
+async def get_client_id():
+    myself = await client.get_me()
+    print(myself.id)
+    return myself.id
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
@@ -35,7 +39,10 @@ client = TelegramClient('session', api_id, api_hash)
 client.start()
 
 
+
 RECORD_TODAY = False
+
+
 
 async def reload_record_boolean():
     global RECORD_TODAY
@@ -54,39 +61,123 @@ def get_markets1():
     return res
 
 def get_markets2():
-    Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24)
-    Ago48DateTime = Ago24DateTime - datetime.timedelta(hours = 24)
+    Ago24DateTime = datetime.datetime.now()
+    Ago48DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24 * 7)
     res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
-    for tries in range(9):    
+    for tries in range(9):   
         try: 
-            if int(res['volume']['value'])>0:
-                return res
+            if 'volume' in res:
+                 return res
             else:
                 res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
-                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
         except Exception:
             print(res)
             res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
-                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()                                                                             
+    if tries == 8:
+        print("Network error")
+        return 0
 
+
+# def get_markets2():
+#     Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24)
+#     Ago48DateTime = Ago24DateTime - datetime.timedelta(hours = 24)
+#     res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+#                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+#     for tries in range(9):    
+#         try: 
+#             if int(res['volume']['value'])>0:
+#                 return res
+#             else:
+#                 res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+#                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+#         except Exception:
+#             print(res)
+#             res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+#                                                                                              int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+
+def get_markets3():
+    Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24 * 7)
+    Ago48DateTime = Ago24DateTime - datetime.timedelta(hours = 24 * 7)
+    res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+    return res
+
+def TVL_sunday():
+    df1 = pd.json_normalize(get_markets1()) 
+    TVL_sunday = df1['tvl.value'][0] / 10**df1['tvl.units.currency.decimals'][0]
+    return TVL_sunday
+
+def TVL_record():
+    df1 = pd.json_normalize(get_markets1()) 
+    TVL_record = df1['tvl.value'][0] / 10**df1['tvl.units.currency.decimals'][0]
+    return TVL_record
+
+def TV_today():
+    df_TV = pd.json_normalize(get_TV_record())
+    TV_today = df_TV['volume.value'][0] / 10**df_TV['volume.units.currency.decimals'][0]
+    return TV_today
 
 def get_markets_swap():
-    Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24)
-    AgoNowDateTime = datetime.datetime.now()
-    res = requests.get("https://api.ergodex.io/v1/amm/swaps?from={0}&to={1}".format(int(time.mktime(Ago24DateTime.timetuple()) * 1000), 
-                                                                                    int(time.mktime(AgoNowDateTime.timetuple()) * 1000))).json()
+    Ago24DateTime = datetime.datetime.now()
+    Ago48DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24 * 7)
+    res = requests.get("https://api.ergodex.io/v1/amm/swaps?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
     return res
 
 def get_markets_deposits():
-    Ago24DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24)
-    AgoNowDateTime = datetime.datetime.now()
-    res = requests.get("https://api.ergodex.io/v1/amm/deposits?from={0}&to={1}".format(int(time.mktime(Ago24DateTime.timetuple()) * 1000), 
-                                                                                    int(time.mktime(AgoNowDateTime.timetuple()) * 1000))).json()
+    Ago24DateTime = datetime.datetime.now()
+    Ago48DateTime = datetime.datetime.now() - datetime.timedelta(hours = 24 * 7)
+    res = requests.get("https://api.ergodex.io/v1/amm/deposits?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
     return res
 
-# Проверка на рекорд
+def get_TV_record():
+    Ago24DateTime = datetime.datetime.now() 
+    Ago48DateTime = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    res = requests.get("https://api.ergodex.io/v1/amm/platform/stats?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+    return res
 
+
+def get_markets_swap_record():
+    Ago24DateTime = datetime.datetime.now() 
+    Ago48DateTime = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    res = requests.get("https://api.ergodex.io/v1/amm/swaps?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+    return res
+
+def get_markets_deposits_record():
+    Ago24DateTime = datetime.datetime.now()
+    Ago48DateTime = datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    res = requests.get("https://api.ergodex.io/v1/amm/deposits?from={0}&to={1}".format(int(time.mktime(Ago48DateTime.timetuple()) * 1000), 
+                                                                                             int(time.mktime(Ago24DateTime.timetuple()) * 1000))).json()
+    return res
+
+def swap_tran():
+    df_swap_record = pd.json_normalize(get_markets_swap_record())
+    swap_tran = df_swap_record['maxTxValue'][0] / 10**df_swap_record['units.currency.decimals'][0]
+    return swap_tran
+
+def swap_num():
+    df_swap_record = pd.json_normalize(get_markets_swap_record())
+    swap_num = df_swap_record['numTxs'][0]
+    return swap_num
+
+def deposit_tran():
+    df_deposits_record = pd.json_normalize(get_markets_deposits_record())
+    deposit_tran = df_deposits_record['maxTxValue'][0] / 10**df_deposits_record['units.currency.decimals'][0]
+    return deposit_tran
+
+def deposit_num():
+    df_deposits_record = pd.json_normalize(get_markets_deposits_record())
+    deposit_num = df_deposits_record['numTxs'][0]
+    return deposit_num
+
+    
+# Проверка на рекорд
 def checkRecord():
     global RECORD_TODAY
     
@@ -316,8 +407,40 @@ async def get_tipper_balance():
             else:
                 print ("No issues?")
 
+        except Exception:
+            if tries == 5:
+                    await client.send_message("ErgoTipperBot", "/balance")
+            else:
+                pass
 
-            
+async def get_tipper_wallet():
+    print('into get_tipper!')
+    status = "?"
+    #await client.start()
+    for tries in range(10):
+        try:
+            name = "ErgoTipperBot"
+            entity = await client.get_entity(name)
+            #await client.send_message("ErgoTipperBot", "/balance")
+            await client.send_message(entity=entity,message="/address")
+            await asyncio.sleep(3)
+            messages = await client.get_messages("ErgoTipperBot")
+            last_mess = str(messages[0].text)
+            print(last_mess)
+            if "Your tip wallet address is" in last_mess:
+                print("address have been got")
+                balance_info = last_mess.split("\n")[0].split(" ")[-1]
+                print("/n/n/n", balance_info.split(" ")[-1])
+                try:
+                    value = float(balance_info.replace("  ", " ").split(" ")[-1])
+                    print(value)
+                except Exception as e:
+                    return balance_info
+
+                status = 'ok'
+                break
+            else:
+                print ("No issues?")
 
         except Exception:
             if tries == 5:
@@ -438,27 +561,108 @@ async def warning():
 async def join():
     await join_soc_chat()
 
-async def showStats():
-    df1 = pd.json_normalize(get_markets2())
-    TV48 = df1['volume.value'][0] / 10**df1['volume.units.currency.decimals'][0]
-    df2 = pd.json_normalize(get_markets1())
-    TVL24 = df1['tvl.value'][0] / 10**df1['tvl.units.currency.decimals'][0]
-    TV24 = df2['volume.value'][0] / 10**df2['volume.units.currency.decimals'][0]
+
+
+async def update_TVL():
+    TVL_now = TVL_sunday()
+    await update_TVL_sunday(TVL_now)
+
+# async def showStats():
+#     df1 = pd.json_normalize(get_markets1())
+#     df2 = pd.json_normalize(get_markets2())
+#     df3 = pd.json_normalize(get_markets3())
+#     df_swap = pd.json_normalize(get_markets_swap())
+#     df_deposits = pd.json_normalize(get_markets_deposits())
     
+#     TVL = df1['tvl.value'][0] / 10**df1['tvl.units.currency.decimals'][0]
+    
+#     TV7days = df2['volume.value'][0] / 10**df2['volume.units.currency.decimals'][0]
+#     TV14days = df3['volume.value'][0] / 10**df3['volume.units.currency.decimals'][0]
+    
+#     TVdelta = TV7days / TV14days
+    
+#     df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0]
+#     df_swap['numTxs'][0]
+    
+#     df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0]
+#     df_deposits['numTxs'][0]
+    
+#     data = [[TVL, TV7days, TVdelta - 1, df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0],
+#            df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0], df_swap['numTxs'][0], 
+#     df_deposits['numTxs'][0]]]
+#     df_review = pd.DataFrame(data, 
+#                              columns = ['TVL', 'Total Volume', 'Total Volume %', 'MaxTransV',
+#                                        'MaxDepoV', 'Transactions', 'Deposits'])
+    
+#     mess = """
+# 📊 ErgoDEX Weekly Statistics:
+    
+# TVL: {0}
+
+# Total Volume: {1}
+
+# Total Volume %: {2}
+    
+# Max transaction value: {3}
+    
+# Max deposit value: {4}
+    
+# Transactions: {5}
+    
+# Deposits: {6}
+    
+#     """.format('$ ' + '{0:,}'.format(int(df_review['TVL'])).replace(',', ' '), 
+#                '$ ' + '{0:,}'.format(int(df_review['Total Volume'])).replace(',', ' '),
+#                '+' + str(round(df_review['Total Volume %'] - 1, 2)) + ' %' if int(df_review['Total Volume %']) >= 1 else '-' + str(float(round(1 - df_review['Total Volume %'], 2))) + ' %',
+#                '$ ' + '{0:,}'.format(int(df_review['MaxTransV'])).replace(',', ' '),
+#                '$ ' + '{0:,}'.format(int(df_review['MaxDepoV'])).replace(',', ' '),
+#                '{0:,}'.format(int(df_review['Transactions'])).replace(',', ' '),
+#                '{0:,}'.format(int(df_review['Deposits'])).replace(',', ' '))
+
+#     bot_sync.send_message(CHAT_ID, mess)
+
+async def get_last_week_TVL():
+    tvl = await get_TVL_sunday()
+    return tvl
+
+async def showStats():
+    df1 = pd.json_normalize(get_markets1())
+    df2 = pd.json_normalize(get_markets2())
+    df3 = pd.json_normalize(get_markets3())
     df_swap = pd.json_normalize(get_markets_swap())
     df_deposits = pd.json_normalize(get_markets_deposits())
     
-    data = [[str(TVL24) + ' $', 
-             str(TV24) + ' $', '+ ' + str(TV24 / TV48 * 100) + ' $' if TV24 / TV48 > 1 else '- ' + str(round((1 - TV24 / TV48) * 100, 2)) + ' %',
-            df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0], 
-                         df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0],
-                         df_swap['numTxs'][0], 
-                         df_deposits['numTxs'][0]]]
+    TVL = df1['tvl.value'][0] / 10**df1['tvl.units.currency.decimals'][0]
+    
+    TV7days = df2['volume.value'][0] / 10**df2['volume.units.currency.decimals'][0]
+    TV14days = df3['volume.value'][0] / 10**df3['volume.units.currency.decimals'][0]
+
+    
+    TVdelta = TV7days / TV14days - 1
+    
+    df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0]
+    df_swap['numTxs'][0]
+    
+    df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0]
+    df_deposits['numTxs'][0]
+    
+    data = [[TVL, TV7days, TVdelta, df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0],
+           df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0], df_swap['numTxs'][0], 
+    df_deposits['numTxs'][0]]]
     df_review = pd.DataFrame(data, 
                              columns = ['TVL', 'Total Volume', 'Total Volume %', 'MaxTransV',
                                        'MaxDepoV', 'Transactions', 'Deposits'])
-    mess = """TVL: {0}
+    last_week_TVL = await get_last_week_TVL()
+    print(last_week_TVL)
+    mess = """
+📊 ErgoDEX Weekly Statistics:
 
+TVL: {0}
+    
+TVL dynamics: {7}
+    
+TVL dynamics %: {8}
+    
 Total Volume: {1}
 
 Total Volume %: {2}
@@ -472,17 +676,22 @@ Transactions: {5}
 Deposits: {6}
     
     
-    """.format(str(TVL24) + ' $', 
-               str(TV24) + ' $', '+ ' + str(TV24 / TV48 * 100 - 100) + ' %' if TV24 / TV48 > 1 else '-' + str(round((1 - TV24 / TV48) * 100, 2)) + ' %',
-              df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0], 
-                         df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0],
-                         df_swap['numTxs'][0], 
-                         df_deposits['numTxs'][0])
-
+    """.format('$ ' + '{0:,}'.format(int(df_review['TVL'])).replace(',', ' '), 
+               '$ ' + '{0:,}'.format(int(df_review['Total Volume'])).replace(',', ' '),
+               '+' + str(float(round(df_review['Total Volume %'] * 100, 2))) + ' %' if float(df_review['Total Volume %']) >= 0 else str(float(round(df_review['Total Volume %'] * 100, 2))) + ' %',
+               '$ ' + '{0:,}'.format(int(df_review['MaxTransV'])).replace(',', ' '),
+               '$ ' + '{0:,}'.format(int(df_review['MaxDepoV'])).replace(',', ' '),
+               '{0:,}'.format(int(df_review['Transactions'])).replace(',', ' '),
+               '{0:,}'.format(int(df_review['Deposits'])).replace(',', ' '),
+               '$ ' + '{0:,}'.format(int(df_review['TVL'] - last_week_TVL)).replace(',', ' '),
+               '+' + str(float(round(df_review['TVL'] / last_week_TVL * 100 - 100, 2))) + ' %' if float(df_review['TVL'] / last_week_TVL - 1) >= 0 else str(float(round(df_review['TVL'] / last_week_TVL * 100 - 100, 2))) + ' %'
+              )
     bot_sync.send_message(CHAT_ID, mess)
 
 async def spam():
     await client.send_message("Test_bot_analyze", "mess")
+
+
 
 async def record_metrics_update():
     global RECORD_TODAY
@@ -491,27 +700,20 @@ async def record_metrics_update():
     # for key in records:
     #     mess+=key.replace("_"," ")+":  "+ str(records[key]) +"\n"
     # print(mess)
-    df2 = pd.json_normalize(get_markets1())
-    TV24 = df2['volume.value'][0] / 10**df2['volume.units.currency.decimals'][0]
     
-    df1 = pd.json_normalize(get_markets2())
-    TVL24 = df1['tvl.value'][0] / 10**df1['tvl.units.currency.decimals'][0]
-
-    df_swap = pd.json_normalize(get_markets_swap())
-    df_deposits = pd.json_normalize(get_markets_deposits())
     
-    current_values = pd.DataFrame([[TVL24,
-                                    TV24,
-                         df_swap['maxTxValue'][0] / 10**df_swap['units.currency.decimals'][0], 
-                         df_deposits['maxTxValue'][0] / 10**df_deposits['units.currency.decimals'][0],
-                         df_swap['numTxs'][0], 
-                         df_deposits['numTxs'][0]
-                        ]], columns = ['TVL',
-                                       'Total Volume', 
-                                       'Max transaction value', 
-                                       'Max deposit value',
-                                       'Transactions',
-                                       'Deposits'
+    current_values = pd.DataFrame([[TVL_record(),
+                                TV_today(),
+                                swap_tran(),
+                                deposit_tran(),
+                                swap_num(), 
+                                deposit_num()
+                               ]], columns = ['TVL',
+                                              'Total Volume', 
+                                              'Max transaction value', 
+                                              'Max deposit value',
+                                              'Transactions',
+                                              'Deposits'
                                       ])
     
     # здесь чтение из БД - нужно доработать чтение в датафрейм из БД (еще будет TVL)
@@ -547,12 +749,21 @@ async def record_metrics_update():
     
 
     list_records = []
+
     for index, value in enumerate(current_values.iloc[0].tolist()):
         if records.iloc[0, index] < value:
+
             records.iloc[0, index] = value
-            mess_record = str(list(records.columns)[index]) + ': ' + str(value)
+            extra_dollar = ""
+            name_column = str(list(records.columns)[index])
+
+            if name_column in ["TVL","Total_Volume","Max_transaction_value","Max_deposit_value"]:
+                extra_dollar = " $"
+
+            mess_record = name_column.replace("_"," ") + ': ' + '{0:,}'.format(int(value)).replace(',', ' ') + extra_dollar
+
             if RECORD_TODAY == False:
-                text = f"New record!\n\n{mess_record}"
+                text = f"🥳 We have a new record!\n\n{mess_record}"
                 bot_sync.send_message(CHAT_ID, text)
             await change_metrics_record({str(list(records.columns)[index]):value})
             #list_records.append(str(list(records.columns)[index]) + ': ' + str(value))
@@ -611,7 +822,7 @@ async def scheduler():
     aioschedule.every().day.at("23:00").do(warning)
     ## test
 
-    #Вознаграждение 3 топ пользователей. Обнуляет счётсчик сообщений в чате. Пока что каждое воскресенье в 20:00 по серверу - 19:00 по мск
+    #Вознаграждение 3 топ пользователей. Обнуляет счётсчик сообщений в чате. Пока что каждое воскресенье в 20:00 по серверу - 21:00 по мск
     aioschedule.every().sunday.at("20:00").do(rewarding_users)
     #aioschedule.every().minute.do(get_tipper_balance)
 
@@ -622,13 +833,17 @@ async def scheduler():
     ## Вывод рекордов
     # aioschedule.every().minute.do(record_metrics_update)
     aioschedule.every(10).minutes.do(record_metrics_update)
-
+    #test
+    #aioschedule.every(10).seconds.do(record_metrics_update)
     #  спам
     #aioschedule.every().second.do(spam)
 
-    ## Вывод статистики
+    ## Вывод статистики по мск 18-00
     #aioschedule.every().minute.do(showStats)
     aioschedule.every().sunday.at("17:00").do(showStats)
+
+    #Обновление TVL_sunday (по мск 18-01)
+    aioschedule.every().sunday.at("17:01").do(update_TVL)
     #aioschedule.every(10).seconds.do(showStats)
 
     ##
