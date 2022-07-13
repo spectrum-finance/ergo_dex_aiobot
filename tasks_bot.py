@@ -658,24 +658,14 @@ async def showStats():
 📊 ErgoDEX Weekly Statistics:
 
 TVL: {0}
-    
 TVL dynamics: {7}
-    
 TVL dynamics %: {8}
-    
 Total Volume: {1}
-
 Total Volume %: {2}
-    
 Max transaction value: {3}
-    
 Max deposit value: {4}
-    
 Transactions: {5}
-    
 Deposits: {6}
-    
-    
     """.format('$ ' + '{0:,}'.format(int(df_review['TVL'])).replace(',', ' '), 
                '$ ' + '{0:,}'.format(int(df_review['Total Volume'])).replace(',', ' '),
                '+' + str(float(round(df_review['Total Volume %'] * 100, 2))) + ' %' if float(df_review['Total Volume %']) >= 0 else str(float(round(df_review['Total Volume %'] * 100, 2))) + ' %',
@@ -823,7 +813,8 @@ async def scheduler():
     ## test
 
     #Вознаграждение 3 топ пользователей. Обнуляет счётсчик сообщений в чате. Пока что каждое воскресенье в 20:00 по серверу - 21:00 по мск
-    aioschedule.every().sunday.at("20:00").do(rewarding_users)
+    # Пока что тестим
+    # aioschedule.every().sunday.at("20:00").do(rewarding_users)
     #aioschedule.every().minute.do(get_tipper_balance)
 
     # Вычисляем,достаточно ли средств для вознаграждений 
