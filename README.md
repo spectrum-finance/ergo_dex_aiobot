@@ -23,7 +23,8 @@ Python 3.9.12<br />
 
   ``` pip install -r req.txt ``` <br />
   create .env;  <br />
-  .env example  <br />
+  
+  .env example:  <br />
   >TOKEN_BOT="0000000000:AAEllAODIUW-llOkllG6lBhZl6YNEOllllU4" <br />
   >CHAT_ID=-1000001000000 <br />
   >client_api_id=1111111 <br />
