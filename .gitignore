@@ -3,7 +3,6 @@ venv
 bot.py
 tasks.py
 bot.py
-aiodata/data.sqlite
 *.pyc
 __pycache__
 */*.cpython*
