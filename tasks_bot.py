@@ -818,9 +818,9 @@ async def scheduler():
     #aioschedule.every().minute.do(get_tipper_balance)
 
     # Вычисляем,достаточно ли средств для вознаграждений 
-    aioschedule.every().sunday.at("19:00").do(calculate_the_lack_of_funds)
-    aioschedule.every().saturday.at("19:00").do(calculate_the_lack_of_funds)
-    aioschedule.every().sunday.at("20:10").do(calculate_the_lack_of_funds)
+    #aioschedule.every().sunday.at("19:00").do(calculate_the_lack_of_funds)
+    #aioschedule.every().saturday.at("19:00").do(calculate_the_lack_of_funds)
+    #aioschedule.every().sunday.at("20:10").do(calculate_the_lack_of_funds)
     ## Вывод рекордов
     # aioschedule.every().minute.do(record_metrics_update)
     aioschedule.every(10).minutes.do(record_metrics_update)
@@ -859,6 +859,6 @@ async def on_startup(_):
 
 if __name__ == "__main__":
     #asyncio.run(send_mess_admins("Тестовая рассылка сообщений админам #2"))
-    print(asyncio.run(rewarding_users()))
+    #print(asyncio.run(rewarding_users()))
     pass
     

@@ -664,21 +664,23 @@ async def send_message(msg: types.Message):
         username = str(msg["from"]["username"])
 
         if int(chat_id) == int(CHAT_ID):
-            await count_mess_user(user_id, name, username)
-            print("Calculate mess")
+            is_admin_str =str( await is_admin(user_id) )
+            if is_admin_str == "0":
+                await count_mess_user(user_id, name, username)
+                print("Calculate mess")
 
-            if "reply_to_message" in msg:
-                user_reply_id = msg["from"]["id"]
-                user_source_id = msg["reply_to_message"]["from"]["id"]
+                if "reply_to_message" in msg:
+                    user_reply_id = msg["from"]["id"]
+                    user_source_id = msg["reply_to_message"]["from"]["id"]
 
-                if user_reply_id != user_source_id: 
-                    if msg.text == '+' or '++' or '+++':
-                        print("+1 rep ")
+                    if user_reply_id != user_source_id: 
+                        if msg.text == '+' or '++' or '+++':
+                            print("+1 rep ")
+                        else:
+                            print("+0.1 rep ")
+                        print( msg["reply_to_message"])
                     else:
-                        print("+0.1 rep ")
-                    print( msg["reply_to_message"])
-                else:
-                    print("user reply ur own message")
+                        print("user reply ur own message")
         else:
             print("We do not count:")
             print("int(chat_id) = ",int(chat_id))
