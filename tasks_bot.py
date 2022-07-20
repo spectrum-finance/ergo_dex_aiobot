@@ -27,10 +27,10 @@ TOKEN_BOT = os.getenv('TOKEN_BOT')
 api_id = os.getenv('client_api_id')
 api_hash = os.getenv('api_hash')
 #chat_id = os.getenv('CHAT_ID')
-chat_id = -758117165 #test bot analyze
+#chat_id = -758117165 #test bot analyze
 
 
-CHAT_ID= -1001721723642
+CHAT_ID = os.getenv('CHAT_ID')
 ergo_bot_id = 5061420716
 
 bot_sync = telebot.TeleBot(token=TOKEN_BOT)
