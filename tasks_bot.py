@@ -452,6 +452,7 @@ async def create_session_client():
     await client.start()
 
 async def rewarding_users():
+    coin_name="Erg"
     top = await get_top_3_users()
     amount = await get_tip_amount_values()
 
@@ -473,7 +474,7 @@ async def rewarding_users():
         tg_tag = winner[3]
         await asyncio.sleep(1)
         await client.start()
-        await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} {str(amount[amount_ind])} kushti test")
+        await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} {str(amount[amount_ind])} {coin_name} test")
         for tries in range(10):
             try:
                 await asyncio.sleep(10)
@@ -496,7 +497,7 @@ async def rewarding_users():
                     break
             except Exception:
                 if tries == 5:
-                    await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} {str(amount[amount_ind])} kushti test")
+                    await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} {str(amount[amount_ind])} {coin_name} test")
                 else:
                     pass
 
@@ -826,7 +827,7 @@ async def scheduler():
     #Вознаграждение 3 топ пользователей. Обнуляет счётсчик сообщений в чате. Пока что каждое воскресенье в 20:00 по серверу - 21:00 по мск
     # Пока что тестим
     # aioschedule.every().sunday.at("20:00").do(rewarding_users)
-    aioschedule.every().thursday.at("20:00").do(rewarding_users)
+    aioschedule.every().thursday.at("20:20").do(rewarding_users)
     #aioschedule.every().minute.do(rewarding_users)
     #aioschedule.every().minute.do(get_tipper_balance)
 
