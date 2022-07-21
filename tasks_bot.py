@@ -453,16 +453,27 @@ async def create_session_client():
 
 async def rewarding_users():
     top = await get_top_3_users()
-    print(top)
+    amount = await get_tip_amount_values()
+
+    print(top, amount)
     #client = TelegramClient('session2', api_id, api_hash)
     reward_status = []
+    reward_mess= "🥳Congratulations to the winners of the drawing !\nChat participants receive a reward in the amount of:\n\n"
+
+    amount_ind = 0
+    for winner in top:
+        reward_mess+= f'@{winner[3]}   {amount[amount_ind]}\n'
+        amount_ind+=1
+    reward_mess += "\n Winners can check their balance in the @ergotipperbot \n\nWe remind you that every week we raffle cryptocurrency among the most active chat participants."
+    bot_sync.send_message( CHAT_ID, reward_mess, disable_web_page_preview=True, parse_mode="HTML" )
+    amount_ind = 0
     for winner in top:
         print(winner[1])
         tg_id = winner[1] 
-
+        tg_tag = winner[3]
         await asyncio.sleep(1)
         await client.start()
-        await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} 1 kushti test")
+        await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} {str(amount[amount_ind])} kushti test")
         for tries in range(10):
             try:
                 await asyncio.sleep(10)
@@ -485,7 +496,7 @@ async def rewarding_users():
                     break
             except Exception:
                 if tries == 5:
-                    await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} 1 kushti test")
+                    await client.send_message("ErgoTipperBot", f"/t id=@ergodex_community,{tg_id} {str(amount[amount_ind])} kushti test")
                 else:
                     pass
 
@@ -497,8 +508,8 @@ async def rewarding_users():
             reward_status.append(0)
 
         print("tries = ",tries)
-
         print(messages)
+        amount_ind +=1
     if 0 in reward_status or 2 in reward_status:
         for i in range(3):
             if reward_status[i] == 0:
@@ -815,7 +826,8 @@ async def scheduler():
     #Вознаграждение 3 топ пользователей. Обнуляет счётсчик сообщений в чате. Пока что каждое воскресенье в 20:00 по серверу - 21:00 по мск
     # Пока что тестим
     # aioschedule.every().sunday.at("20:00").do(rewarding_users)
-    aioschedule.every().thursday.at("17:40").do(rewarding_users)
+    #aioschedule.every().thursday.at("20:00").do(rewarding_users)
+    aioschedule.every().minute.do(rewarding_users)
     #aioschedule.every().minute.do(get_tipper_balance)
 
     # Вычисляем,достаточно ли средств для вознаграждений 
