@@ -827,7 +827,7 @@ async def scheduler():
     #Вознаграждение 3 топ пользователей. Обнуляет счётсчик сообщений в чате. Пока что каждое воскресенье в 20:00 по серверу - 21:00 по мск
     # Пока что тестим
     # aioschedule.every().sunday.at("20:00").do(rewarding_users)
-    aioschedule.every().day.at("13:50").do(rewarding_users)
+    aioschedule.every().day.at("15:35").do(rewarding_users)
     #aioschedule.every().minute.do(rewarding_users)
     #aioschedule.every().minute.do(get_tipper_balance)
 
