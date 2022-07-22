@@ -459,13 +459,13 @@ async def rewarding_users():
     print(top, amount)
     #client = TelegramClient('session2', api_id, api_hash)
     reward_status = []
-    reward_mess= "🥳Congratulations to the winners of the drawing !\nChat participants receive a reward in the amount of:\n\n"
+    reward_mess= ":вечеринка: Congratulations to the winners of our weekly draw! \nEvery week our bot chooses 3 people from the most active members of the community.\n\nWinners:\n\n"
 
     amount_ind = 0
     for winner in top:
-        reward_mess+= f'@{winner[3]}   {amount[amount_ind]}\n'
+        reward_mess+= f'@{winner[3]} - {amount[amount_ind]} $ERG\n'
         amount_ind+=1
-    reward_mess += "\n Winners can check their balance in the @ergotipperbot \n\nWe remind you that every week we raffle cryptocurrency among the most active chat participants."
+    reward_mess += "\n Check your balance in: @ergotipperbot"
     bot_sync.send_message( CHAT_ID, reward_mess, disable_web_page_preview=True, parse_mode="HTML" )
     amount_ind = 0
     for winner in top:
