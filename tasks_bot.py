@@ -459,7 +459,7 @@ async def rewarding_users():
     print(top, amount)
     #client = TelegramClient('session2', api_id, api_hash)
     reward_status = []
-    reward_mess= ":вечеринка: Congratulations to the winners of our weekly draw! \nEvery week our bot chooses 3 people from the most active members of the community.\n\nWinners:\n\n"
+    reward_mess= "🥳 Congratulations to the winners of our weekly draw! \nEvery week our bot chooses 3 people from the most active members of the community.\n\nWinners:\n\n"
 
     amount_ind = 0
     for winner in top:
