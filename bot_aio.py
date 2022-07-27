@@ -132,7 +132,7 @@ async def cmd_most_active(message: types.Message):
             is_admin_user = user[4]
             user_mess_count = user[5]
             reputation = user[6]
-            mess = f"The most active user in chat:  {name} @{username} \n   \n Number of messages: {user_mess_count}"
+            mess = f"The most active user in chat {message.chat.title}:  {name} @{username} \n   \n Number of messages: {user_mess_count}"
             await message.answer(mess)
 
         else:
