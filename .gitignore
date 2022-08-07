@@ -8,4 +8,4 @@ __pycache__
 */*.cpython*
 *session*
 session*
-aiodata
+/aiodata/data.sqlite

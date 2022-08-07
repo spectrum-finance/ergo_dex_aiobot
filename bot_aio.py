@@ -640,7 +640,14 @@ async def send_message(msg: types.Message):
     user_id = msg.from_user.id
     #print(msg)
     if chat_type == "private":
-        pass
+        is_admin = await is_admin(user_id)
+        if ("set_null" in msg.text) and is_admin :
+            mess = msg.text.split(" ")
+            tg_id = mess[-1]
+            try:
+                await set_null_mess(tg_id)
+            except Exception:
+                pass
         # if "add_atr" in msg.text and await is_admin(user_id):
         #     query = msg.text.split(" ")
         #     #print(query)

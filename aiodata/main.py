@@ -87,6 +87,16 @@ async def count_mess_user(tg_id, name, username, db_name=db_name):
             ''')
             await db.commit()
 
+async def set_null_mess(tg_id, db_name=db_name):
+    user = await get_user(tg_id)
+    if user is None:
+        print('При обнулении счётсчика сообщений произошла ошибка - такого пользователя не существует')
+    else:
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            await db.execute(f'''UPDATE users SET chat_count_mess = chat_count_mess + 1 WHERE tg_id = {tg_id}
+            ''')
+            await db.commit()
+
 async def make_admin(tg_id, db_name=db_name):
     user = await get_user(tg_id)
     if user is None:
