@@ -42,6 +42,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from tasks_bot import on_startup, get_tipper_balance, create_session_client, get_tipper_wallet,  get_client_id
 
 
+
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
 CHAT_ID = os.getenv('CHAT_ID')
@@ -66,6 +67,8 @@ dp = Dispatcher(bot, storage=storage)
 dp.middleware.setup(LoggingMiddleware())
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
+
+users_non_rewarding = [1098276777, 1828733897]
 
 ###############################
 ####       EXCEPTIOS       ####
@@ -133,6 +136,31 @@ async def cmd_most_active(message: types.Message):
             user_mess_count = user[5]
             reputation = user[6]
             mess = f"The most active user in chat {message.chat.title}:  {name} @{username} \n   \n Number of messages: {user_mess_count}"
+            await message.answer(mess)
+
+        else:
+            print(message.chat.id)
+            await message.reply("You are not an admin")
+
+    elif message.chat.type == 'supergroup':
+        await message.reply("This command allow just in private")
+
+
+@dp.message_handler(commands="most_active_users")
+async def cmd_most_active(message: types.Message):
+    if message.chat.type == 'private':
+        if await is_admin(message.chat.id) == 1:
+            users = await get_most_active_users()
+            mess = f"The most active users in chat:\n\n"
+            for user in users:
+                #user = await get_most_active_user()
+                user_id = user[1]
+                name = user[2]
+                username= user[3]
+                is_admin_user = user[4]
+                user_mess_count = user[5]
+                reputation = user[6]
+                mess += f" {name} @{username}    |   Number of messages: {user_mess_count} \n"
             await message.answer(mess)
 
         else:
@@ -640,8 +668,8 @@ async def send_message(msg: types.Message):
     user_id = msg.from_user.id
     #print(msg)
     if chat_type == "private":
-        is_admin = await is_admin(user_id)
-        if ("set_null" in msg.text) and is_admin :
+        is_adm = await is_admin(user_id)
+        if ("set_null" in msg.text) and int(is_adm) == 1 :
             mess = msg.text.split(" ")
             tg_id = mess[-1]
             try:
@@ -672,7 +700,7 @@ async def send_message(msg: types.Message):
 
         if int(chat_id) == int(CHAT_ID):
             is_admin_str =str( await is_admin(user_id) )
-            if is_admin_str == "0":
+            if is_admin_str == "0" and int(user_id) not in users_non_rewarding:
                 await count_mess_user(user_id, name, username)
                 print("Calculate mess")
 

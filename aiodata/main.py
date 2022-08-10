@@ -73,6 +73,14 @@ async def get_most_active_user( db_name=db_name):
             res = await res.fetchone()
             return res
 
+async def get_most_active_users( db_name=db_name):
+    if database_exists(db_name):
+        #print(1)
+        async with aiosqlite.connect(database_path(db_name)) as db:
+            res = await db.execute(f'''SELECT * FROM users ORDER BY chat_count_mess DESC LIMIT 0,5''')
+            res = await res.fetchall()
+            return res
+
 async def count_mess_user(tg_id, name, username, db_name=db_name):
     user = await get_user(tg_id)
     if user is None:
@@ -93,7 +101,7 @@ async def set_null_mess(tg_id, db_name=db_name):
         print('При обнулении счётсчика сообщений произошла ошибка - такого пользователя не существует')
     else:
         async with aiosqlite.connect(database_path(db_name)) as db:
-            await db.execute(f'''UPDATE users SET chat_count_mess = chat_count_mess + 1 WHERE tg_id = {tg_id}
+            await db.execute(f'''UPDATE users SET chat_count_mess = 0 WHERE tg_id = {tg_id}
             ''')
             await db.commit()
 
@@ -529,6 +537,7 @@ async def get_top_3_users( db_name=db_name):
     
 
 if __name__ == "__main__":
+    #print(asyncio.run(get_most_active_users()))
     #asyncio.run(update_TVL_sunday(1600417.49))
     #print(asyncio.run(change_tips(1, 0.3)))
     #asyncio.run(add_metric_db())
